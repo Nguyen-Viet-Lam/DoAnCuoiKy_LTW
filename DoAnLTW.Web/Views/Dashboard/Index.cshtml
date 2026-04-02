@@ -1,0 +1,450 @@
+@using System.Globalization
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan chi tiêu";
+
+    var invariant = CultureInfo.InvariantCulture;
+    var chartItems = Model.MonthlyComparison;
+    var chartMax = chartItems.SelectMany(x => new[] { x.Income, x.Expense }).DefaultIfEmpty(0m).Max();
+    var hasTrendData = chartItems.Any(x => x.Income > 0 || x.Expense > 0);
+    var monthTabs = chartItems.OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).ToList();
+    var selectedMonth = chartItems.FirstOrDefault(x => x.Month == Model.SelectedMonth && x.Year == Model.SelectedYear)
+        ?? chartItems.LastOrDefault();
+    var totalExpenseYear = chartItems.Sum(x => x.Expense);
+    var totalIncomeYear = chartItems.Sum(x => x.Income);
+    var averageExpense = chartItems.Count == 0 ? 0m : Math.Round(chartItems.Average(x => x.Expense), 0);
+
+    var expensePoints = new List<(decimal X, decimal Y)>();
+    for (var i = 0; i < chartItems.Count; i++)
+    {
+        var x = chartItems.Count == 1 ? 50m : Math.Round(i * 100m / (chartItems.Count - 1), 2);
+        var y = chartMax == 0
+            ? 88m
+            : Math.Round(88m - (chartItems[i].Expense / chartMax * 76m), 2);
+
+        expensePoints.Add((x, y));
+    }
+
+    var expensePolyline = string.Join(" ", expensePoints.Select(x => $"{x.X.ToString("0.##", invariant)},{x.Y.ToString("0.##", invariant)}"));
+    var trackedExpenseAmount = Model.CategoryBreakdown.Sum(x => x.Amount);
+    var trackedExpenseShare = Model.TotalExpenseMonth == 0
+        ? 0d
+        : Math.Round((double)(trackedExpenseAmount / Model.TotalExpenseMonth * 100m), 1);
+    var leadingCategory = Model.CategoryBreakdown.FirstOrDefault();
+    var leadingCategoryShare = leadingCategory is null || Model.TotalExpenseMonth == 0
+        ? 0d
+        : Math.Round((double)(leadingCategory.Amount / Model.TotalExpenseMonth * 100m), 1);
+    var categoryPieSegments = new List<string>();
+    var pieStart = 0d;
+
+    foreach (var item in Model.CategoryBreakdown)
+    {
+        var percent = Model.TotalExpenseMonth == 0
+            ? 0d
+            : Math.Round((double)(item.Amount / Model.TotalExpenseMonth * 100m), 1);
+
+        if (percent <= 0)
+        {
+            continue;
+        }
+
+        var pieEnd = Math.Min(100d, pieStart + percent);
+        categoryPieSegments.Add($"{item.ColorHex} {pieStart.ToString("0.#", invariant)}% {pieEnd.ToString("0.#", invariant)}%");
+        pieStart = pieEnd;
+    }
+
+    if (pieStart < 100)
+    {
+        categoryPieSegments.Add($"#dbeafe {pieStart.ToString("0.#", invariant)}% 100%");
+    }
+
+    var categoryPieBackground = categoryPieSegments.Count == 0
+        ? "background:#eef5ff;"
+        : $"background:conic-gradient({string.Join(", ", categoryPieSegments)});";
+}
+
+<section class="expense-dashboard-shell">
+    <div class="expense-dashboard-hero">
+        <div>
+            <span class="badge-soft mb-3">Xin chào, @Model.DisplayName</span>
+            <h2>Biến động Thu/Chi</h2>
+            <p>Theo dõi 12 tháng gần nhất, xem tháng nào chi nhiều và mở nhanh phần ngân sách khi cần.</p>
+        </div>
+        <div class="expense-dashboard-actions">
+            <a class="btn btn-soft-primary" asp-controller="Budgets" asp-action="Index">Thiết lập ngân sách</a>
+            <a class="btn btn-outline-soft" asp-controller="Transactions" asp-action="Index">Nhập giao dịch</a>
+        </div>
+    </div>
+
+    @if (monthTabs.Any())
+    {
+        <div class="expense-month-tabs">
+            @foreach (var item in monthTabs)
+            {
+                <a class="expense-month-chip @(selectedMonth?.Label == item.Label ? "is-active" : string.Empty)"
+                   asp-controller="Dashboard"
+                   asp-action="Index"
+                   asp-route-month="@item.Month"
+                   asp-route-year="@item.Year">
+                    @item.FullLabel
+                </a>
+            }
+        </div>
+    }
+
+    <section class="row g-4 mt-1">
+        <div class="col-xl-8">
+            <div class="soft-card expense-trend-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Biểu đồ Thu/Chi</h3>
+                        <p>
+                            @if (chartItems.Any())
+                            {
+                                <span>(@chartItems.First().Label - @chartItems.Last().Label)</span>
+                            }
+                            else
+                            {
+                                <span>12 tháng gần nhất</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                @if (hasTrendData)
+                {
+                    <div class="expense-trend-stage">
+                        <svg class="expense-trend-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                            <polyline points="@expensePolyline" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                            @foreach (var point in expensePoints)
+                            {
+                                <circle cx="@point.X.ToString("0.##", invariant)" cy="@point.Y.ToString("0.##", invariant)" r="1.6" fill="#f97316"></circle>
+                            }
+                        </svg>
+
+                        <div class="expense-trend-grid">
+                            @foreach (var item in chartItems)
+                            {
+                                var incomeHeight = chartMax == 0 ? 8 : Math.Max(8d, (double)(item.Income / chartMax * 100m));
+                                <div class="expense-trend-column">
+                                    <div class="expense-trend-bars">
+                                        <span class="expense-trend-track"></span>
+                                        <span class="expense-trend-income" style="height:@incomeHeight.ToString("0.##", invariant)%"></span>
+                                    </div>
+                                    <div class="expense-trend-label">
+                                        <strong>@item.ShortLabel</strong>
+                                        <small>@((item.Month == 1 || item.Label == chartItems.First().Label || item.Label == selectedMonth?.Label) ? item.Year.ToString() : string.Empty)</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="expense-trend-legend">
+                        <span><i class="bi bi-square-fill expense-income-icon"></i> Thu</span>
+                        <span><i class="bi bi-circle-fill expense-outcome-icon"></i> Chi</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <h4>Chưa có dữ liệu thu chi</h4>
+                        <p>Hãy thêm vài giao dịch để biểu đồ bắt đầu hiển thị theo tháng giống sổ theo dõi cá nhân.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="soft-card expense-summary-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Tóm tắt nhanh</h3>
+                        <p>Những con số bạn cần nhìn đầu tiên trước khi đi vào chi tiết.</p>
+                    </div>
+                </div>
+
+                <div class="expense-summary-grid">
+                    <article class="expense-summary-box">
+                        <span>Số dư hiện có</span>
+                        <strong>@Model.TotalBalance.ToString("N0") VND</strong>
+                    </article>
+                    <article class="expense-summary-box">
+                        <span>Tổng chi 12 tháng</span>
+                        <strong>@totalExpenseYear.ToString("N0") VND</strong>
+                    </article>
+                    <article class="expense-summary-box">
+                        <span>TB chi mỗi tháng</span>
+                        <strong>@averageExpense.ToString("N0") VND</strong>
+                    </article>
+                    <article class="expense-summary-box">
+                        <span>Dự báo cuối tháng</span>
+                        <strong>@Model.ForecastExpense.ToString("N0") VND</strong>
+                    </article>
+                </div>
+
+                @if (selectedMonth is not null)
+                {
+                    var selectedNetClass = selectedMonth.NetAmount >= 0 ? "is-positive" : "is-negative";
+                    <div class="selected-month-card">
+                        <div class="selected-month-head">
+                            <strong>@selectedMonth.FullLabel</strong>
+                            <span class="selected-month-net @selectedNetClass">@selectedMonth.NetAmount.ToString("N0") VND</span>
+                        </div>
+                        <div class="selected-month-rows">
+                            <div>
+                                <span>Thu</span>
+                                <strong class="text-success">@selectedMonth.Income.ToString("N0") VND</strong>
+                            </div>
+                            <div>
+                                <span>Chi</span>
+                                <strong class="text-danger">@selectedMonth.Expense.ToString("N0") VND</strong>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="expense-note">
+                    <strong>Tỷ lệ tiết kiệm ước tính</strong>
+                    <span>@Model.SavingsRate.ToString("0.#", invariant)% trên thu nhập tháng hiện tại</span>
+                </div>
+
+                @if (Model.UnreadAlertCount > 0)
+                {
+                    <div class="expense-note warning-note">
+                        <strong>Cảnh báo ngân sách</strong>
+                        <span>Bạn có @Model.UnreadAlertCount cảnh báo chưa đọc. Hãy kiểm tra để điều chỉnh chi tiêu kịp thời.</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-4 mt-1">
+        <div class="col-xl-5">
+            <div class="soft-card monthly-detail-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Chi tiết theo tháng</h3>
+                        <p>Danh sách các tháng gần nhất để bạn so sánh thu, chi và số dư thực tế.</p>
+                    </div>
+                </div>
+
+                @if (chartItems.Any(x => x.Income > 0 || x.Expense > 0))
+                {
+                    foreach (var item in chartItems.OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).Take(5))
+                    {
+                        var netClass = item.NetAmount >= 0 ? "is-positive" : "is-negative";
+                        <article class="month-detail-row">
+                            <div class="month-detail-head">
+                                <strong>@item.FullLabel</strong>
+                                <span class="@netClass">@item.NetAmount.ToString("N0") VND</span>
+                            </div>
+                            <div class="month-detail-metrics">
+                                <div>
+                                    <span>Thu</span>
+                                    <strong class="text-success">@item.Income.ToString("N0") VND</strong>
+                                </div>
+                                <div>
+                                    <span>Chi</span>
+                                    <strong class="text-danger">@item.Expense.ToString("N0") VND</strong>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <h4>Chưa có tháng nào phát sinh giao dịch</h4>
+                        <p>Khi bạn bắt đầu nhập giao dịch, phần chi tiết này sẽ tự động tổng hợp theo tháng.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-xl-7">
+            <div class="soft-card category-budget-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Chi tiêu theo danh mục</h3>
+                        <p>Nhìn nhanh nhóm chi phí nào đang chiếm tỷ trọng lớn trong tháng hiện tại.</p>
+                    </div>
+                    <a class="btn btn-outline-soft" asp-controller="Budgets" asp-action="Index">Mở ngân sách</a>
+                </div>
+
+                @if (Model.CategoryBreakdown.Any())
+                {
+                    <div class="pie-layout mb-4">
+                        <div class="pie-chart" style="@categoryPieBackground">
+                            <div class="pie-center">
+                                <span>Tong chi thang nay</span>
+                                <strong>@Model.TotalExpenseMonth.ToString("N0") VND</strong>
+                                <small>Theo doi @trackedExpenseShare.ToString("0.#", invariant)% chi tieu</small>
+                            </div>
+                        </div>
+
+                        <div class="category-pie-copy">
+                            <span class="badge-soft">Pie chart CSS</span>
+                            <h4>Cac nhom chi lon nhat dang dan dong tien thang nay.</h4>
+                            <p>
+                                @(leadingCategory is null
+                                    ? "He thong se hien bieu do khi co giao dich chi."
+                                    : $"Danh muc dan dau la {leadingCategory.CategoryName}, chiem {leadingCategoryShare.ToString("0.#", invariant)}% tong chi.")
+                            </p>
+                            <small>Phan mau xam the hien phan chi phi ngoai top @Model.CategoryBreakdown.Count danh muc.</small>
+                        </div>
+                    </div>
+
+                    @foreach (var item in Model.CategoryBreakdown)
+                    {
+                        var percent = Model.TotalExpenseMonth == 0
+                            ? 0
+                            : Math.Round((double)(item.Amount / Model.TotalExpenseMonth * 100m), 1);
+                        <div class="category-progress-row">
+                            <div class="category-progress-head">
+                                <div class="category-progress-label">
+                                    <span class="legend-dot" style="background:@item.ColorHex"></span>
+                                    <strong>@item.CategoryName</strong>
+                                </div>
+                                <div class="category-progress-values">
+                                    <span>@percent%</span>
+                                    <strong>@item.Amount.ToString("N0") VND</strong>
+                                </div>
+                            </div>
+                            <div class="soft-progress">
+                                <div class="soft-progress-bar" style="width:@Math.Max(percent, 6).ToString("0.#", invariant)%; background:@item.ColorHex"></div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.BudgetHighlights.Any())
+                    {
+                        <div class="budget-highlight-stack">
+                            @foreach (var budget in Model.BudgetHighlights.Take(3))
+                            {
+                                var progressWidth = Math.Min(budget.UsagePercent, 100d);
+                                <article class="budget-highlight-row">
+                                    <div class="budget-highlight-copy">
+                                        <strong>@budget.CategoryName</strong>
+                                        <span>@budget.SpentAmount.ToString("N0") / @budget.LimitAmount.ToString("N0") VND</span>
+                                    </div>
+                                    <div class="budget-highlight-progress">
+                                        <div class="soft-progress">
+                                            <div class="soft-progress-bar" style="width:@progressWidth.ToString("0.#", invariant)%; background:@budget.ColorHex"></div>
+                                        </div>
+                                        <small>@budget.UsagePercent.ToString("0.#", invariant)%</small>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <h4>Chưa có chi tiêu theo danh mục</h4>
+                        <p>Hãy thêm giao dịch chi trong tháng này để hệ thống tổng hợp cơ cấu chi phí cho bạn.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-4 mt-1">
+        <div class="col-xl-6">
+            <div class="soft-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Ví của bạn</h3>
+                        <p>Số dư hiện tại của từng ví đang sử dụng.</p>
+                    </div>
+                    <a class="btn btn-outline-soft" asp-controller="Wallets" asp-action="Index">Quản lý ví</a>
+                </div>
+
+                @if (Model.Wallets.Any())
+                {
+                    foreach (var wallet in Model.Wallets)
+                    {
+                        <div class="wallet-mini-card @(wallet.IsLowBalance ? "wallet-mini-card-warning" : string.Empty)">
+                            <div>
+                                <div class="wallet-mini-head">
+                                    <strong>@wallet.Name</strong>
+                                    @if (wallet.IsLowBalance)
+                                    {
+                                        <span class="status-chip status-chip-warning">Sap het tien</span>
+                                    }
+                                </div>
+                                <div class="text-muted">@wallet.Type</div>
+                            </div>
+                            <div class="wallet-mini-values">
+                                <span>@wallet.Balance.ToString("N0") VND</span>
+                                @if (wallet.IsLowBalance)
+                                {
+                                    <small>Duoi @Model.LowBalanceThreshold.ToString("N0") VND</small>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <h4>Chưa có ví nào</h4>
+                        <p>Hãy tạo ví đầu tiên để bắt đầu quản lý số dư và luồng tiền của bạn.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="soft-card h-100">
+                <div class="section-title">
+                    <div>
+                        <h3>Giao dịch gần đây</h3>
+                        <p>Rà soát nhanh các khoản thu chi mới phát sinh.</p>
+                    </div>
+                    <a class="btn btn-outline-soft" asp-controller="Transactions" asp-action="Index">Xem tất cả</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table app-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Danh mục</th>
+                                <th class="text-end">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentTransactions.Any())
+                            {
+                                foreach (var item in Model.RecentTransactions)
+                                {
+                                    <tr>
+                                        <td>@item.Date.ToString("dd/MM HH:mm")</td>
+                                        <td>@item.CategoryName</td>
+                                        <td class="text-end @(item.Type == "Income" ? "text-success" : "text-danger")">
+                                            @(item.Type == "Income" ? "+" : "-")@item.Amount.ToString("N0") VND
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3">
+                                        <div class="empty-state my-2">
+                                            <h4>Chưa có giao dịch gần đây</h4>
+                                            <p>Thêm một giao dịch mới để bảng này bắt đầu hiển thị dữ liệu thực tế.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>

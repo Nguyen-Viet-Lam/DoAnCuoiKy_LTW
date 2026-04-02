@@ -1,0 +1,30 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Local CLI cache
+.dotnet/
+LocalNuGetFeed/
+
+# Local dev data
+DoAnLTW.Web/App_Data/DevEmails/
+DoAnLTW.Web/App_Data/DataProtectionKeys/
+
+# Temporary run output
+DoAnLTW.Web/*.log
+DoAnLTW.Web/*.out.log
+DoAnLTW.Web/*.err.log
+DoAnLTW.Web/*-smoke.*
+DoAnLTW.Web/*-run.*
+DoAnLTW.Web/*-check.*
+DoAnLTW.Web/route-smoke.*
+DoAnLTW.Web/temp-run-build/
+DoAnLTW.Web/temp-run-build-2/
+*.log
+*.out.log
+*.err.log

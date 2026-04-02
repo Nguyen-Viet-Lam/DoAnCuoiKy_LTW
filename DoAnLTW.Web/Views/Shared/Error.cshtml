@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Co loi xay ra";
+    var code = ViewBag.StatusCode ?? 500;
+}
+
+<section class="hero-panel p-5 text-center">
+    <span class="badge-soft mb-3">Ma loi @code</span>
+    <h2 class="mb-3">Trang nay tam thoi chua mo duoc</h2>
+    <p class="text-muted mx-auto" style="max-width: 620px;">
+        Ban co the quay ve trang chu hoac trang tong quan de tiep tuc thao tac.
+        Neu loi lap lai nhieu lan, hay kiem tra lai du lieu vua nhap.
+    </p>
+    <div class="d-flex justify-content-center gap-3 mt-4">
+        <a class="btn btn-soft-primary" asp-controller="Home" asp-action="Index">Ve trang chinh</a>
+        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
+        {
+            <a class="btn btn-outline-soft" asp-controller="Dashboard" asp-action="Index">Ve tong quan</a>
+        }
+    </div>
+</section>

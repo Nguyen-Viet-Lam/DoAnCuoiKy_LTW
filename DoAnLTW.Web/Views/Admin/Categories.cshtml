@@ -1,0 +1,139 @@
+@model AdminCategoriesPageViewModel
+@{
+    ViewData["Title"] = "Quan ly danh muc";
+}
+
+<section class="grid-cards mb-4">
+    <article class="soft-card stat-card">
+        <span>Danh muc khoan chi</span>
+        <strong>@Model.TotalExpenseCategories</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Danh muc khoan thu</span>
+        <strong>@Model.TotalIncomeCategories</strong>
+    </article>
+</section>
+
+<section class="row g-4">
+    <div class="col-xxl-4 col-xl-12">
+        <div class="soft-card sticky-panel">
+            <div class="section-title">
+                <div>
+                    <h3>@(Model.CategoryForm.Id.HasValue ? "Sua danh muc" : "Them danh muc")</h3>
+                    <p>Danh muc mac dinh dung chung cho toan he thong</p>
+                </div>
+                @if (Model.CategoryForm.Id.HasValue)
+                {
+                    <a class="btn btn-outline-soft" asp-action="Categories" asp-route-transactionTypeFilter="@Model.TransactionTypeFilter">Bo sua</a>
+                }
+            </div>
+            <form asp-action="SaveCategory" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+                <input asp-for="CategoryForm.Id" type="hidden" />
+                <div class="col-12">
+                    <label asp-for="CategoryForm.Name" class="form-label">Ten danh muc</label>
+                    <input asp-for="CategoryForm.Name" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="CategoryForm.TransactionType" class="form-label">Loai giao dich</label>
+                    <select asp-for="CategoryForm.TransactionType" class="form-select">
+                        <option value="Expense">Khoan chi</option>
+                        <option value="Income">Khoan thu</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="CategoryForm.Icon" class="form-label">Icon Bootstrap</label>
+                    <input asp-for="CategoryForm.Icon" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="CategoryForm.ColorHex" class="form-label">Mau sac</label>
+                    <input asp-for="CategoryForm.ColorHex" class="form-control" />
+                </div>
+                <div class="col-12 d-grid">
+                    <button class="btn btn-soft-primary" type="submit">@(Model.CategoryForm.Id.HasValue ? "Cap nhat danh muc" : "Them danh muc")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-xxl-8 col-xl-12">
+        <div class="soft-card">
+            <div class="section-title">
+                <div>
+                    <h3>Danh sach danh muc</h3>
+                    <p>Loc theo loai khoan thu va khoan chi</p>
+                </div>
+            </div>
+            <form method="get" class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <select class="form-select" name="transactionTypeFilter">
+                        <option value="All" selected="@(Model.TransactionTypeFilter == "All")">Tat ca</option>
+                        <option value="Expense" selected="@(Model.TransactionTypeFilter == "Expense")">Khoan chi</option>
+                        <option value="Income" selected="@(Model.TransactionTypeFilter == "Income")">Khoan thu</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button class="btn btn-outline-soft" type="submit">Loc</button>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table app-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Danh muc</th>
+                            <th>Loai</th>
+                            <th>Icon</th>
+                            <th>Phat sinh</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="category-chip" style="border-color:@category.ColorHex">
+                                        <i class="@category.Icon" style="color:@category.ColorHex"></i>
+                                        @category.Name
+                                    </span>
+                                </td>
+                                <td>@(category.TransactionType == "Expense" ? "Khoan chi" : "Khoan thu")</td>
+                                <td>@category.Icon</td>
+                                <td>@category.TransactionCount giao dich | @category.BudgetCount ngan sach</td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a class="btn btn-outline-soft btn-sm"
+                                           asp-action="Categories"
+                                           asp-route-transactionTypeFilter="@Model.TransactionTypeFilter"
+                                           asp-route-editId="@category.Id">
+                                            Sua
+                                        </a>
+                                        <form asp-action="DeleteCategory" method="post" data-confirm="Ban co chac muon xoa danh muc nay khong?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@category.Id" />
+                                            <input type="hidden" name="transactionTypeFilter" value="@Model.TransactionTypeFilter" />
+                                            <button class="btn btn-soft-danger btn-sm" type="submit" @(category.TransactionCount > 0 || category.BudgetCount > 0 ? "disabled" : null)>
+                                                Xoa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Categories.Any())
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state my-2">
+                                        <h4>Khong co danh muc nao phu hop</h4>
+                                        <p>Ban thu doi bo loc hoac them mot danh muc mac dinh moi.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

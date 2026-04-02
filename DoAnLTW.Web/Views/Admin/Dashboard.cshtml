@@ -1,0 +1,113 @@
+@model AdminDashboardPageViewModel
+@{
+    ViewData["Title"] = "Tổng quan quản trị";
+}
+
+<section class="grid-cards mb-4">
+    <article class="soft-card stat-card">
+        <span>Tong nguoi dung</span>
+        <strong>@Model.TotalUsers</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Nguoi dung hoat dong</span>
+        <strong>@Model.ActiveUsers</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Tong giao dich</span>
+        <strong>@Model.TotalTransactions</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Danh muc he thong</span>
+        <strong>@Model.TotalCategories</strong>
+    </article>
+</section>
+
+<section class="row g-4">
+    <div class="col-xxl-7 col-xl-12">
+        <div class="soft-card mb-4">
+            <div class="section-title">
+                <div>
+                    <h3>Thong ke 7 ngay</h3>
+                    <p>Nguoi dung moi va so giao dich theo ngay</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table app-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Ngay</th>
+                            <th>Nguoi dung moi</th>
+                            <th>Giao dich</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.DailyStats)
+                        {
+                            <tr>
+                                <td>@row.Label</td>
+                                <td>@row.NewUsers</td>
+                                <td>@row.Transactions</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="soft-card">
+            <div class="section-title">
+                <div>
+                    <h3>Nhat ky moi nhat</h3>
+                    <p>Nhung su kien gan day de theo doi he thong</p>
+                </div>
+                <a class="btn btn-outline-soft" asp-action="Logs">Xem nhat ky</a>
+            </div>
+            <div class="log-list">
+                @foreach (var log in Model.LatestLogs)
+                {
+                    <div class="log-item">
+                        <strong>@log.Action</strong>
+                        <span>@log.Message</span>
+                        <small>@log.CreatedAt.ToString("dd/MM HH:mm") | @log.Level | @(log.UserDisplayName ?? "He thong")</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-5 col-xl-12">
+        <div class="soft-card">
+            <div class="section-title">
+                <div>
+                    <h3>Tai khoan moi tao</h3>
+                    <p>Tai khoan moi de admin theo doi nhanh</p>
+                </div>
+                <a class="btn btn-outline-soft" asp-action="Users">Quan ly nguoi dung</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table app-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tai khoan</th>
+                            <th>Role</th>
+                            <th>So du</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.LatestUsers)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@user.DisplayName</strong>
+                                    <div class="text-muted small">@user.Email</div>
+                                </td>
+                                <td>@user.RoleName</td>
+                                <td>@user.TotalBalance.ToString("N0") VND</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

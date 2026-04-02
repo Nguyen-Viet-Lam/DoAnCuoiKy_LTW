@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Quản lý chi tiêu cá nhân";
+}
+
+<section class="landing-hero" id="trang-chu">
+    <div class="hero-panel hero-grid">
+        <div>
+            <span class="badge-soft mb-3">Ghi chép đơn giản, theo dõi rõ ràng</span>
+            <h1 class="display-5 fw-bold mb-3">Kiểm soát tiền vào, tiền ra và ngân sách hàng tháng trên một nơi duy nhất.</h1>
+            <p class="text-muted mb-4">
+                Finance Flow giúp bạn quản lý ví tiền, ghi giao dịch mỗi ngày, theo dõi hạn mức chi tiêu,
+                nhận cảnh báo kịp lúc và xem báo cáo ngắn gọn để biết mình đang tiêu tiền như thế nào.
+            </p>
+            <div class="d-flex gap-3 flex-wrap">
+                <a class="btn btn-soft-primary btn-lg" asp-controller="Auth" asp-action="Register">Bắt đầu ngay</a>
+                <a class="btn btn-outline-soft btn-lg" asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+            </div>
+        </div>
+        <div class="hero-preview">
+            <div class="metric-card">
+                <span>Số dư hiện có</span>
+                <strong>12.450.000 VND</strong>
+                <small>3 ví đang hoạt động</small>
+            </div>
+            <div class="metric-card soft-accent">
+                <span>Ngân sách ăn uống</span>
+                <strong>78%</strong>
+                <small>Còn 660.000 VND cho tháng này</small>
+            </div>
+            <div class="mini-bars">
+                <div style="height:32%"></div>
+                <div style="height:44%"></div>
+                <div style="height:61%"></div>
+                <div style="height:48%"></div>
+                <div style="height:75%"></div>
+                <div style="height:55%"></div>
+                <div style="height:90%"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-section mt-4" id="gioi-thieu">
+    <div class="soft-card">
+        <div class="section-title mb-4">
+            <div>
+                <h3>Giới thiệu</h3>
+                <p>Finance Flow là web quản lý chi tiêu cá nhân theo hướng gọn, dễ dùng và hợp với bài tập lớn môn Lập trình web.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="home-info-card h-100">
+                    <span class="home-info-icon"><i class="bi bi-wallet2"></i></span>
+                    <h4>Quản lý ví tiền</h4>
+                    <p>Tạo ví tiền mặt, ngân hàng hoặc tiết kiệm, theo dõi số dư hiện tại và lịch sử dòng tiền của từng ví.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="home-info-card h-100">
+                    <span class="home-info-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                    <h4>Theo dõi thu chi</h4>
+                    <p>Nhập giao dịch hằng ngày, xem biểu đồ tổng quan, kiểm tra mức chi tiêu và phân bổ chi phí theo danh mục.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="home-info-card h-100">
+                    <span class="home-info-icon"><i class="bi bi-shield-check"></i></span>
+                    <h4>Phân quyền rõ ràng</h4>
+                    <p>Người dùng quản lý tài chính cá nhân, quản trị viên quản lý tài khoản, danh mục và nhật ký hệ thống.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-section mt-4" id="tinh-nang">
+    <div class="section-title mb-3">
+        <div>
+            <h3>Tính năng nổi bật</h3>
+            <p>Những chức năng chính của hệ thống quản lý chi tiêu cá nhân.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="feature-card h-100">
+                <i class="bi bi-pencil-square"></i>
+                <h3>Nhập liệu nhanh</h3>
+                <p>Thêm khoản thu, khoản chi mỗi ngày theo ví và danh mục để không bỏ sót dòng tiền nhỏ.</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card h-100">
+                <i class="bi bi-pie-chart"></i>
+                <h3>Theo dõi ngân sách</h3>
+                <p>Xem tiến độ chi tiêu theo phần trăm, nhận cảnh báo khi một danh mục sắp vượt hạn mức.</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card h-100">
+                <i class="bi bi-envelope-paper"></i>
+                <h3>Báo cáo rõ ràng</h3>
+                <p>Tổng hợp số liệu theo tuần, theo tháng hoặc theo khoảng ngày bạn chọn để thuận tiện trình bày và lưu trữ.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-section mt-4" id="huong-dan">
+    <div class="soft-card">
+        <div class="section-title mb-4">
+            <div>
+                <h3>Hướng dẫn sử dụng nhanh</h3>
+                <p>Người dùng mới có thể làm quen hệ thống chỉ trong vài bước đơn giản.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="home-step-card h-100">
+                    <div class="home-step-number">1</div>
+                    <h4>Tạo tài khoản và đăng nhập</h4>
+                    <p>Đăng ký tài khoản, xác thực OTP qua email, sau đó đăng nhập để bắt đầu sử dụng hệ thống.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="home-step-card h-100">
+                    <div class="home-step-number">2</div>
+                    <h4>Tạo ví và nhập giao dịch</h4>
+                    <p>Mỗi người dùng nên tạo ít nhất một ví, sau đó thêm các khoản thu chi để dashboard có dữ liệu hiển thị.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="home-step-card h-100">
+                    <div class="home-step-number">3</div>
+                    <h4>Đặt ngân sách và xem báo cáo</h4>
+                    <p>Lập hạn mức chi tiêu, xem cảnh báo khi sắp vượt mức, theo dõi biểu đồ và xuất Excel khi cần.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="home-help-grid mt-4">
+            <div class="home-help-panel">
+                <h4>Người dùng sẽ làm gì?</h4>
+                <ul class="list-soft">
+                    <li><span>Quản lý ví, giao dịch, ngân sách</span><strong>User</strong></li>
+                    <li><span>Xem dashboard, báo cáo, dự báo chi tiêu</span><strong>User</strong></li>
+                    <li><span>Cập nhật hồ sơ và đổi mật khẩu</span><strong>User</strong></li>
+                </ul>
+            </div>
+            <div class="home-help-panel">
+                <h4>Quản trị viên sẽ làm gì?</h4>
+                <ul class="list-soft">
+                    <li><span>Quản lý tài khoản và trạng thái người dùng</span><strong>Admin</strong></li>
+                    <li><span>Quản lý danh mục mặc định của hệ thống</span><strong>Admin</strong></li>
+                    <li><span>Xem nhật ký và thống kê hoạt động</span><strong>Admin</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

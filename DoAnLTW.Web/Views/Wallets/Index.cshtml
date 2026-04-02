@@ -1,0 +1,111 @@
+@model WalletsPageViewModel
+@{
+    ViewData["Title"] = "Ví tiền";
+}
+
+<section class="row g-4">
+    <div class="col-xl-5 col-xxl-4">
+        <div class="soft-card sticky-panel">
+            <div class="section-title">
+                <div>
+                    <h3>@(Model.Form.Id.HasValue ? "Sua vi" : "Tao vi moi")</h3>
+                    <p>Quan ly vi tien mat, ngan hang hoac tiet kiem.</p>
+                </div>
+            </div>
+
+            <form asp-action="Save" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+                <input asp-for="Form.Id" type="hidden" />
+                <div class="col-12">
+                    <label asp-for="Form.Name" class="form-label"></label>
+                    <input asp-for="Form.Name" class="form-control" />
+                    <span asp-validation-for="Form.Name" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Form.Type" class="form-label"></label>
+                    <select asp-for="Form.Type" class="form-select">
+                        <option value="Cash">Tien mat</option>
+                        <option value="Bank">Ngan hang</option>
+                        <option value="Savings">Tiet kiem</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Form.InitialBalance" class="form-label"></label>
+                    <input asp-for="Form.InitialBalance" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Form.Note" class="form-label"></label>
+                    <textarea asp-for="Form.Note" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12 d-grid">
+                    <button class="btn btn-soft-primary" type="submit">Luu vi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-xl-7 col-xxl-8">
+        <div class="soft-card">
+            <div class="section-title">
+                <div>
+                    <h3>Danh sach vi</h3>
+                    <p>Tong so du hien tai: <strong>@Model.TotalBalance.ToString("N0") VND</strong></p>
+                </div>
+            </div>
+            @if (Model.Wallets.Any())
+            {
+                <div class="row g-3">
+                @foreach (var wallet in Model.Wallets)
+                {
+                    <div class="col-md-6">
+                        <div class="wallet-card @(wallet.IsLowBalance ? "wallet-card-warning" : string.Empty)">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="wallet-mini-head mb-1">
+                                        <h4 class="mb-0">@wallet.Name</h4>
+                                        @if (wallet.IsLowBalance)
+                                        {
+                                            <span class="status-chip status-chip-warning">Sap het tien</span>
+                                        }
+                                    </div>
+                                    <p class="text-muted mb-0">@wallet.Type</p>
+                                </div>
+                                <div class="wallet-mini-values text-end">
+                                    <span class="wallet-balance">@wallet.CurrentBalance.ToString("N0") VND</span>
+                                    @if (wallet.IsLowBalance)
+                                    {
+                                        <small>Duoi @Model.LowBalanceThreshold.ToString("N0") VND</small>
+                                    }
+                                </div>
+                            </div>
+                            <p class="text-muted">@(string.IsNullOrWhiteSpace(wallet.Note) ? "Chua co ghi chu." : wallet.Note)</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small>@wallet.TransactionCount giao dich</small>
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-outline-soft btn-sm" asp-action="Index" asp-route-editId="@wallet.Id">Sua</a>
+                                    <form asp-action="Delete" method="post" data-confirm="Ban co chac muon xoa vi nay khong?">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@wallet.Id" />
+                                        <button class="btn btn-soft-danger btn-sm" type="submit">Xoa</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <h4>Ban chua co vi nao</h4>
+                    <p>Hay tao vi tien mat, ngan hang hoac tiet kiem de bat dau ghi giao dich.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

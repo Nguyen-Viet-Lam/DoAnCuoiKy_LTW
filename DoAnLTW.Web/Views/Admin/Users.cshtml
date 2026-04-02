@@ -1,0 +1,116 @@
+@model AdminUsersPageViewModel
+@{
+    ViewData["Title"] = "Quan ly nguoi dung";
+}
+
+<section class="grid-cards mb-4">
+    <article class="soft-card stat-card">
+        <span>Tong ket qua</span>
+        <strong>@Model.TotalUsers</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Dang hoat dong</span>
+        <strong>@Model.ActiveUsers</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Da khoa</span>
+        <strong>@Model.LockedUsers</strong>
+    </article>
+</section>
+
+<section class="soft-card mb-4">
+    <div class="section-title">
+        <div>
+            <h3>Loc nguoi dung</h3>
+            <p>Tim theo ten, email, role va trang thai</p>
+        </div>
+    </div>
+    <form method="get" class="row g-3">
+        <div class="col-xl-4 col-md-6">
+            <input class="form-control" name="searchTerm" value="@Model.SearchTerm" placeholder="Nhap ten, ten dang nhap, email..." />
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <select class="form-select" name="statusFilter">
+                <option value="All" selected="@(Model.StatusFilter == "All")">Tat ca trang thai</option>
+                <option value="Active" selected="@(Model.StatusFilter == "Active")">Dang hoat dong</option>
+                <option value="Locked" selected="@(Model.StatusFilter == "Locked")">Da khoa</option>
+            </select>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <select class="form-select" name="roleFilter">
+                <option value="All" selected="@(Model.RoleFilter == "All")">Tat ca role</option>
+                <option value="User" selected="@(Model.RoleFilter == "User")">User</option>
+                <option value="Admin" selected="@(Model.RoleFilter == "Admin")">Admin</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-md-6 d-grid">
+            <button class="btn btn-soft-primary" type="submit">Loc</button>
+        </div>
+    </form>
+</section>
+
+<section class="soft-card">
+    <div class="section-title">
+        <div>
+            <h3>Danh sach nguoi dung</h3>
+            <p>Admin chi duoc khoa mo tai khoan role User</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table app-table align-middle">
+            <thead>
+                <tr>
+                    <th>Tai khoan</th>
+                    <th>Role</th>
+                    <th>Trang thai</th>
+                    <th>So du</th>
+                    <th>Hoat dong</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>
+                            <strong>@user.DisplayName</strong>
+                            <div class="text-muted small">@user.Email | @user.Username</div>
+                        </td>
+                        <td>@user.RoleName</td>
+                        <td>
+                            <span class="badge @(user.IsActive ? "text-bg-success" : "text-bg-danger")">
+                                @(user.IsActive ? "Dang hoat dong" : "Da khoa")
+                            </span>
+                        </td>
+                        <td>@user.TotalBalance.ToString("N0") VND</td>
+                        <td class="small text-muted">@user.WalletCount vi | @user.TransactionCount giao dich</td>
+                        <td class="text-end">
+                            @if (user.RoleName != "Admin")
+                            {
+                                <form asp-action="ToggleUser" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <input type="hidden" name="isActive" value="@(user.IsActive ? "false" : "true")" />
+                                    <button class="btn @(user.IsActive ? "btn-soft-danger" : "btn-soft-primary") btn-sm" type="submit">
+                                        @(user.IsActive ? "Khoa" : "Mo khoa")
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Users.Any())
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state my-2">
+                                <h4>Khong tim thay nguoi dung phu hop</h4>
+                                <p>Ban thu doi tu khoa tim kiem hoac bo loc role, trang thai.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

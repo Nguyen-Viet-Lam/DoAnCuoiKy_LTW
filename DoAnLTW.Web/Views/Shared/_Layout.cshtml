@@ -1,0 +1,237 @@
+@using System.Security.Claims
+@{
+    var title = ViewData["Title"]?.ToString() ?? "Finance Flow";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var isAdmin = User.IsInRole("Admin");
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    var displayName = User.FindFirstValue(ClaimTypes.GivenName) ?? User.Identity?.Name ?? "Bạn";
+    var avatarText = string.IsNullOrWhiteSpace(displayName) ? "U" : displayName[..1].ToUpper();
+    var roleLabel = isAdmin ? "Quản trị hệ thống" : "Người dùng";
+    var homeController = isAdmin ? "Admin" : "Dashboard";
+    var homeAction = isAdmin ? "Dashboard" : "Index";
+    var homeLabel = isAdmin ? "Tổng quan quản trị" : "Tổng quan";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title - Finance Flow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="soft-ui-body">
+    @if (isAuthenticated)
+    {
+        <div class="app-shell" id="appShell">
+            <aside class="sidebar" id="appSidebar">
+                <div class="sidebar-head">
+                    <a class="brand-link" asp-controller="@homeController" asp-action="@homeAction">
+                        <span class="brand-mark">FF</span>
+                        <span class="brand-copy">
+                            <strong>Finance Flow</strong>
+                            <small>Quản lý chi tiêu cá nhân</small>
+                        </span>
+                    </a>
+
+                    <button class="sidebar-toggle sidebar-toggle-inline"
+                            type="button"
+                            data-sidebar-toggle
+                            aria-label="Đóng menu"
+                            title="Đóng menu">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-avatar">@avatarText</div>
+                    <div class="user-meta">
+                        <strong>@displayName</strong>
+                        <div class="small text-muted">@roleLabel</div>
+                    </div>
+                </div>
+
+                <nav class="nav-stack">
+                    @if (!isAdmin)
+                    {
+                        <a class="nav-item @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index" title="Tổng quan">
+                            <span class="nav-icon"><i class="bi bi-grid"></i></span>
+                            <span class="nav-label">Tổng quan</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Wallets" ? "active" : "")" asp-controller="Wallets" asp-action="Index" title="Ví tiền">
+                            <span class="nav-icon"><i class="bi bi-wallet2"></i></span>
+                            <span class="nav-label">Ví tiền</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Transactions" ? "active" : "")" asp-controller="Transactions" asp-action="Index" title="Giao dịch">
+                            <span class="nav-icon"><i class="bi bi-arrow-left-right"></i></span>
+                            <span class="nav-label">Giao dịch</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Budgets" ? "active" : "")" asp-controller="Budgets" asp-action="Index" title="Ngân sách">
+                            <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
+                            <span class="nav-label">Ngân sách</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index" title="Báo cáo">
+                            <span class="nav-icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
+                            <span class="nav-label">Báo cáo</span>
+                        </a>
+                    }
+
+                    <a class="nav-item @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index" title="Hồ sơ">
+                        <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
+                        <span class="nav-label">Hồ sơ</span>
+                    </a>
+
+                    @if (isAdmin)
+                    {
+                        <a class="nav-item @(currentController == "Admin" && (currentAction == "Dashboard" || currentAction == "Index") ? "active" : "")" asp-controller="Admin" asp-action="Dashboard" title="Tổng quan quản trị">
+                            <span class="nav-icon"><i class="bi bi-shield-lock"></i></span>
+                            <span class="nav-label">Tổng quan quản trị</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Admin" && currentAction == "Users" ? "active" : "")" asp-controller="Admin" asp-action="Users" title="Người dùng">
+                            <span class="nav-icon"><i class="bi bi-people"></i></span>
+                            <span class="nav-label">Người dùng</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Admin" && currentAction == "Categories" ? "active" : "")" asp-controller="Admin" asp-action="Categories" title="Danh mục">
+                            <span class="nav-icon"><i class="bi bi-tags"></i></span>
+                            <span class="nav-label">Danh mục</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Admin" && currentAction == "Logs" ? "active" : "")" asp-controller="Admin" asp-action="Logs" title="Nhật ký hệ thống">
+                            <span class="nav-icon"><i class="bi bi-journal-text"></i></span>
+                            <span class="nav-label">Nhật ký hệ thống</span>
+                        </a>
+                    }
+                </nav>
+
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="mt-auto">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-soft-danger w-100 logout-button" type="submit">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span class="logout-label">Đăng xuất</span>
+                    </button>
+                </form>
+            </aside>
+            <button class="sidebar-backdrop"
+                    type="button"
+                    data-sidebar-toggle
+                    aria-label="Dong menu"></button>
+
+            <main class="content-shell">
+                <header class="workspace-header" id="workspaceHeader">
+                    <div class="workspace-header-row">
+                        <div class="workspace-header-left">
+                            <button class="sidebar-toggle sidebar-toggle-header"
+                                    type="button"
+                                    data-sidebar-toggle
+                                    aria-label="Mở menu"
+                                    title="Mở menu">
+                                <i class="bi bi-list"></i>
+                                <span class="toggle-label">Menu</span>
+                            </button>
+
+                            <div class="header-copy">
+                                <h1 class="page-title">@title</h1>
+                            </div>
+                        </div>
+
+                        <div class="header-actions">
+                            <div class="dropdown account-dropdown">
+                                <button class="header-user-panel account-trigger dropdown-toggle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <div class="header-avatar">@avatarText</div>
+                                    <div class="header-user-meta">
+                                        <strong>@displayName</strong>
+                                        <div class="small text-muted">@roleLabel</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down account-chevron"></i>
+                                </button>
+
+                                <div class="dropdown-menu dropdown-menu-end account-menu">
+                                    <div class="account-menu-head">
+                                        <div class="header-avatar">@avatarText</div>
+                                        <div class="header-user-meta">
+                                            <strong>@displayName</strong>
+                                            <div class="small text-muted">@roleLabel</div>
+                                        </div>
+                                    </div>
+
+                                    <a class="dropdown-item" asp-controller="@homeController" asp-action="@homeAction">
+                                        <i class="bi bi-house-door"></i>
+                                        <span>@homeLabel</span>
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                        <i class="bi bi-person-circle"></i>
+                                        <span>Hồ sơ cá nhân</span>
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index" asp-fragment="profile-form">
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span>Cập nhật thông tin</span>
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index" asp-fragment="password-form">
+                                        <i class="bi bi-shield-lock"></i>
+                                        <span>Đổi mật khẩu</span>
+                                    </a>
+
+                                    <div class="dropdown-divider"></div>
+
+                                    <form asp-controller="Auth" asp-action="Logout" method="post" class="account-menu-form">
+                                        @Html.AntiForgeryToken()
+                                        <button class="dropdown-item account-logout" type="submit">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                            <span>Đăng xuất</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                @await Html.PartialAsync("_FlashMessages")
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        <div class="public-shell">
+            <header class="public-header">
+                <a class="brand-link" asp-controller="Home" asp-action="Index">
+                    <span class="brand-mark">FF</span>
+                    <span class="brand-copy">
+                        <strong>Finance Flow</strong>
+                        <small>Gọn gàng, sáng màu, dễ theo dõi</small>
+                    </span>
+                </a>
+                <nav class="public-nav">
+                    <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="gioi-thieu">Giới thiệu</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="tinh-nang">Tính năng</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="huong-dan">Hướng dẫn</a>
+                </nav>
+                <div class="public-actions">
+                    <a class="btn btn-outline-soft" asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+                    <a class="btn btn-soft-primary" asp-controller="Auth" asp-action="Register">Tạo tài khoản</a>
+                </div>
+            </header>
+
+            @await Html.PartialAsync("_FlashMessages")
+
+            <main class="public-main">
+                @RenderBody()
+            </main>
+        </div>
+    }
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="realtimeToastHost"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

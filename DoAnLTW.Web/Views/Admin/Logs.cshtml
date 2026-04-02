@@ -1,0 +1,89 @@
+@model AdminLogsPageViewModel
+@{
+    ViewData["Title"] = "Nhat ky he thong";
+}
+
+<section class="grid-cards mb-4">
+    <article class="soft-card stat-card">
+        <span>Tong nhat ky</span>
+        <strong>@Model.TotalLogs</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Nhat ky loi</span>
+        <strong>@Model.ErrorLogs</strong>
+    </article>
+    <article class="soft-card stat-card">
+        <span>Nhat ky thao tac</span>
+        <strong>@Model.UserActionLogs</strong>
+    </article>
+</section>
+
+<section class="soft-card mb-4">
+    <div class="section-title">
+        <div>
+            <h3>Loc nhat ky</h3>
+            <p>Tim theo muc do, hanh dong, noi dung hoac nguoi dung</p>
+        </div>
+    </div>
+    <form method="get" class="row g-3">
+        <div class="col-xl-3 col-md-6">
+            <select class="form-select" name="levelFilter">
+                <option value="All" selected="@(Model.LevelFilter == "All")">Tat ca muc do</option>
+                <option value="Info" selected="@(Model.LevelFilter == "Info")">Info</option>
+                <option value="Warning" selected="@(Model.LevelFilter == "Warning")">Warning</option>
+                <option value="Error" selected="@(Model.LevelFilter == "Error")">Error</option>
+            </select>
+        </div>
+        <div class="col-xl-7 col-md-6">
+            <input class="form-control" name="searchTerm" value="@Model.SearchTerm" placeholder="Nhap hanh dong, noi dung, ten nguoi dung..." />
+        </div>
+        <div class="col-xl-2 col-md-6 d-grid">
+            <button class="btn btn-soft-primary" type="submit">Loc</button>
+        </div>
+    </form>
+</section>
+
+<section class="soft-card">
+    <div class="section-title">
+        <div>
+            <h3>Danh sach nhat ky</h3>
+            <p>Admin co the doc lich su thao tac va canh bao tai mot noi</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table app-table align-middle">
+            <thead>
+                <tr>
+                    <th>Thoi gian</th>
+                    <th>Muc do</th>
+                    <th>Hanh dong</th>
+                    <th>Noi dung</th>
+                    <th>Nguoi dung</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model.Logs)
+                {
+                    <tr>
+                        <td>@log.CreatedAt.ToString("dd/MM HH:mm")</td>
+                        <td>@log.Level</td>
+                        <td>@log.Action</td>
+                        <td>@log.Message</td>
+                        <td>@(log.UserDisplayName ?? "He thong")</td>
+                    </tr>
+                }
+                @if (!Model.Logs.Any())
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state my-2">
+                                <h4>Khong co nhat ky nao phu hop</h4>
+                                <p>Ban thu doi muc do hoac tu khoa tim kiem de xem ket qua khac.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

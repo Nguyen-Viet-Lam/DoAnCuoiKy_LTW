@@ -1,0 +1,43 @@
+@model VerifyOtpViewModel
+@{
+    ViewData["Title"] = "Xac thuc email";
+}
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="mb-4">
+            <span class="badge-soft">Xac thuc tai khoan</span>
+            <h2 class="mt-3 mb-2">Nhap ma OTP</h2>
+            <p class="text-muted mb-0">Ma da duoc gui toi <strong>@Model.Email</strong>. Vui long nhap dung trong vong 10 phut.</p>
+        </div>
+
+        <form asp-action="VerifyOtp" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <input asp-for="Purpose" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+            <div class="col-12">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control form-control-lg" />
+            </div>
+            <div class="col-12">
+                <label asp-for="Code" class="form-label"></label>
+                <input asp-for="Code" class="form-control form-control-lg otp-input" maxlength="6" />
+                <span asp-validation-for="Code" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-soft-primary w-100 btn-lg" type="submit">Xac thuc</button>
+            </div>
+        </form>
+
+        <form asp-action="ResendOtp" method="post" class="mt-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="email" value="@Model.Email" />
+            <input type="hidden" name="purpose" value="@Model.Purpose" />
+            <button class="btn btn-outline-soft w-100" type="submit">Gui lai ma</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

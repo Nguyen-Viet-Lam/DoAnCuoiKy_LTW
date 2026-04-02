@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<section class="hero-panel p-5 text-center">
+    <span class="badge-soft mb-3">403 - Không có quyền</span>
+    <h2 class="mb-3">Bạn không có quyền vào khu vực này</h2>
+    <p class="text-muted mx-auto" style="max-width: 560px;">
+        Hệ thống đang phân quyền theo role Guest, User và Admin. Hãy đăng nhập đúng tài khoản
+        hoặc quay lại trang phù hợp với quyền hiện tại.
+    </p>
+    <div class="d-flex justify-content-center gap-3 mt-4">
+        <a class="btn btn-soft-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+        <a class="btn btn-outline-soft" asp-controller="Auth" asp-action="Login">Đăng nhập lại</a>
+    </div>
+</section>

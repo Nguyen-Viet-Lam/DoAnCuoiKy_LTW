@@ -1,0 +1,300 @@
+@model TransactionsPageViewModel
+@{
+    ViewData["Title"] = "Giao dịch";
+}
+
+<section class="row g-4">
+    <div class="col-xl-5 col-xxl-4">
+        <div class="soft-card sticky-panel">
+            <div class="section-title">
+                <div>
+                    <h3>@(Model.Form.Id.HasValue ? "Sua giao dich" : "Nhap giao dich")</h3>
+                    <p>Ghi lai khoan thu, khoan chi moi ngay.</p>
+                </div>
+                @if (Model.Form.Id.HasValue)
+                {
+                    <a class="btn btn-outline-soft" asp-action="Index" asp-route-type="@Model.Filter.Type">Bo sua</a>
+                }
+            </div>
+
+            <div class="d-flex gap-2 mb-3">
+                <a class="btn @(Model.Filter.Type == "Expense" ? "btn-soft-primary" : "btn-outline-soft")" asp-action="Index" asp-route-type="Expense">Khoan chi</a>
+                <a class="btn @(Model.Filter.Type == "Income" ? "btn-soft-primary" : "btn-outline-soft")" asp-action="Index" asp-route-type="Income">Khoan thu</a>
+            </div>
+
+            <form asp-action="Save" method="post" class="row g-3" id="transactionForm">
+                @Html.AntiForgeryToken()
+                <input asp-for="Form.Id" type="hidden" />
+                <input asp-for="Form.Type" type="hidden" />
+                <input asp-for="Form.SuggestedCategoryId" type="hidden" />
+                <input asp-for="Form.SuggestedCategoryName" type="hidden" />
+                <input asp-for="Form.SuggestedConfidence" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                <div class="col-md-6">
+                    <label asp-for="Form.WalletId" class="form-label"></label>
+                    <select asp-for="Form.WalletId" class="form-select" asp-items="@(new SelectList(Model.Form.WalletOptions, "Value", "Text"))"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Form.CategoryId" class="form-label"></label>
+                    <select asp-for="Form.CategoryId" class="form-select" asp-items="@(new SelectList(Model.Form.CategoryOptions, "Value", "Text"))"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Form.Amount" class="form-label"></label>
+                    <input asp-for="Form.Amount" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Form.OccurredOn" class="form-label"></label>
+                    <input asp-for="Form.OccurredOn" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Form.Note" class="form-label"></label>
+                    <textarea asp-for="Form.Note" class="form-control" rows="3" placeholder="Vi du: do xang 70k, an trua 45k..."></textarea>
+                    <div class="mt-2" id="aiSuggestBox"></div>
+                </div>
+                <div class="col-12 d-grid">
+                    <button class="btn btn-soft-primary" type="submit">@(Model.Form.Id.HasValue ? "Cap nhat giao dich" : "Luu giao dich")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-xl-7 col-xxl-8">
+        <div class="grid-cards mb-4">
+            <article class="soft-card stat-card">
+                <span>Tong thu thang nay</span>
+                <strong>@Model.TotalIncomeMonth.ToString("N0") VND</strong>
+            </article>
+            <article class="soft-card stat-card">
+                <span>Tong chi thang nay</span>
+                <strong>@Model.TotalExpenseMonth.ToString("N0") VND</strong>
+            </article>
+            <article class="soft-card stat-card">
+                <span>Ket qua loc</span>
+                <strong>@Model.TotalResults</strong>
+            </article>
+        </div>
+
+        <div class="soft-card mb-4">
+            <div class="section-title">
+                <div>
+                    <h3>Loc giao dich</h3>
+                    <p>Tim theo vi, danh muc, tu khoa va khoang ngay.</p>
+                </div>
+            </div>
+            <form method="get" class="row g-3">
+                <input type="hidden" name="type" value="@Model.Filter.Type" />
+                <div class="col-md-4">
+                    <select class="form-select" name="walletId">
+                        <option value="">Tat ca vi</option>
+                        @foreach (var item in Model.Filter.WalletOptions)
+                        {
+                            <option value="@item.Value" selected="@(Model.Filter.WalletId == item.Value)">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="categoryId">
+                        <option value="">Tat ca danh muc</option>
+                        @foreach (var item in Model.Filter.CategoryOptions)
+                        {
+                            <option value="@item.Value" selected="@(Model.Filter.CategoryId == item.Value)">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" name="keyword" value="@Model.Filter.Keyword" placeholder="Tim theo ghi chu..." />
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" type="date" name="fromDate" value="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" type="date" name="toDate" value="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-soft-primary w-100" type="submit">Loc</button>
+                    <a class="btn btn-outline-soft w-100" asp-action="Index" asp-route-type="@Model.Filter.Type">Xoa loc</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="soft-card mb-4">
+            <div class="section-title">
+                <div>
+                    <h3>Lich su giao dich</h3>
+                    <p>Theo doi dang danh sach va sua xoa nhanh.</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table app-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ngay</th>
+                            <th>Danh muc</th>
+                            <th>Vi</th>
+                            <th>Ghi chu</th>
+                            <th class="text-end">So tien</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Transactions)
+                        {
+                            <tr>
+                                <td>@item.Date.ToString("dd/MM HH:mm")</td>
+                                <td>@item.CategoryName</td>
+                                <td>@item.WalletName</td>
+                                <td>@item.Note</td>
+                                <td class="text-end @(item.Type == "Income" ? "text-success" : "text-danger")">
+                                    @(item.Type == "Income" ? "+" : "-")@item.Amount.ToString("N0") VND
+                                </td>
+                                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                                        <a class="btn btn-outline-soft btn-sm"
+                                           asp-action="Index"
+                                           asp-route-type="@Model.Filter.Type"
+                                           asp-route-walletId="@Model.Filter.WalletId"
+                                           asp-route-categoryId="@Model.Filter.CategoryId"
+                                           asp-route-keyword="@Model.Filter.Keyword"
+                                           asp-route-fromDate="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-toDate="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-editId="@item.Id">
+                                            Sua
+                                        </a>
+                                        <form asp-action="Delete" method="post" data-confirm="Ban co chac muon xoa giao dich nay khong?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="type" value="@Model.Filter.Type" />
+                                            <button class="btn btn-soft-danger btn-sm" type="submit">Xoa</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Transactions.Any())
+                        {
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state my-2">
+                                        <h4>Chua co giao dich phu hop</h4>
+                                        <p>Ban thu doi bo loc hoac them mot giao dich moi de bat dau theo doi thu chi.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.Timeline.Any())
+        {
+            <div class="soft-card">
+                <div class="section-title">
+                    <div>
+                        <h3>Timeline giao dich</h3>
+                        <p>12 giao dich gan nhat trong tap du lieu dang loc.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-stack">
+                    @foreach (var dayGroup in Model.Timeline.GroupBy(x => x.Date.Date))
+                    {
+                        <section class="timeline-day-block">
+                            <div class="timeline-day-label">
+                                <strong>@dayGroup.Key.ToString("dd/MM/yyyy")</strong>
+                                <span>@dayGroup.Count() giao dich</span>
+                            </div>
+
+                            <div class="timeline">
+                                @foreach (var item in dayGroup)
+                                {
+                                    <article class="timeline-item">
+                                        <span class="timeline-dot" style="background:@item.CategoryColor"></span>
+                                        <div class="timeline-entry">
+                                            <div class="timeline-entry-meta">
+                                                <span class="timeline-time">@item.Date.ToString("HH:mm")</span>
+                                                @if (item.UsedAiSuggestion)
+                                                {
+                                                    <span class="status-chip status-chip-info">AI goi y</span>
+                                                }
+                                            </div>
+
+                                            <div class="timeline-content timeline-entry-card">
+                                                <div class="timeline-icon" style="color:@item.CategoryColor">
+                                                    <i class="bi @item.CategoryIcon"></i>
+                                                </div>
+
+                                                <div class="timeline-copy">
+                                                    <div class="timeline-title-row">
+                                                        <strong>@item.CategoryName</strong>
+                                                        <span>@item.WalletName</span>
+                                                    </div>
+                                                    <p>@(string.IsNullOrWhiteSpace(item.Note) ? "Khong co ghi chu." : item.Note)</p>
+                                                </div>
+
+                                                <div class="timeline-amount @(item.Type == "Income" ? "text-success" : "text-danger")">
+                                                    @(item.Type == "Income" ? "+" : "-")@item.Amount.ToString("N0") VND
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        </section>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const noteInput = document.getElementById("Form_Note");
+            const typeInput = document.getElementById("Form_Type");
+            const categorySelect = document.getElementById("Form_CategoryId");
+            const suggestedCategoryId = document.getElementById("Form_SuggestedCategoryId");
+            const suggestedCategoryName = document.getElementById("Form_SuggestedCategoryName");
+            const suggestedConfidence = document.getElementById("Form_SuggestedConfidence");
+            const suggestBox = document.getElementById("aiSuggestBox");
+
+            async function suggest() {
+                const note = noteInput?.value?.trim();
+                if (!note) {
+                    suggestBox.innerHTML = "";
+                    return;
+                }
+
+                const url = `/Transactions/SuggestCategory?type=${encodeURIComponent(typeInput.value)}&note=${encodeURIComponent(note)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!data.hasValue) {
+                    suggestBox.innerHTML = `<span class="text-muted small">Chua co goi y danh muc tu ghi chu.</span>`;
+                    return;
+                }
+
+                suggestedCategoryId.value = data.categoryId;
+                suggestedCategoryName.value = data.categoryName;
+                suggestedConfidence.value = data.confidence;
+
+                if (categorySelect) {
+                    categorySelect.value = String(data.categoryId);
+                }
+
+                const sourceLabel = data.source === "personal" ? "Hoc tu lan sua truoc" : "Nhan dang tu khoa";
+                suggestBox.innerHTML = `
+                    <div class="suggestion-note">
+                        <strong>Goi y thong minh: ${data.categoryName}</strong>
+                        <div class="small">${data.explanation}</div>
+                        <div class="small text-muted">${sourceLabel} - do tin cay ${Math.round(data.confidence * 100)}%</div>
+                    </div>`;
+            }
+
+            noteInput?.addEventListener("blur", suggest);
+        })();
+    </script>
+}

@@ -1,0 +1,118 @@
+@model ReportsPageViewModel
+@{
+    ViewData["Title"] = "Báo cáo chi tiêu";
+}
+
+<section class="soft-card mb-4">
+    <div class="section-title">
+        <div>
+            <h3>Loc bao cao theo ngay</h3>
+            <p>Chon khoang thoi gian de xem tong hop chi tieu.</p>
+        </div>
+    </div>
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" asp-for="Filter.FromDate">Tu ngay</label>
+            <input asp-for="Filter.FromDate" type="date" class="form-control" name="fromDate" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" asp-for="Filter.ToDate">Den ngay</label>
+            <input asp-for="Filter.ToDate" type="date" class="form-control" name="toDate" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-2">
+            <button class="btn btn-soft-primary w-100" type="submit">Xem bao cao</button>
+            <a class="btn btn-outline-soft w-100" asp-action="Index">Dat lai</a>
+        </div>
+    </form>
+
+    <div class="grid-cards mt-4">
+        <article class="soft-card stat-card">
+            <span>Tong thu</span>
+            <strong>@Model.CustomSummary.TotalIncome.ToString("N0") VND</strong>
+            <small>@Model.CustomSummary.TransactionCount giao dich</small>
+        </article>
+        <article class="soft-card stat-card">
+            <span>Tong chi</span>
+            <strong>@Model.CustomSummary.TotalExpense.ToString("N0") VND</strong>
+            <small>Trung binh @Model.CustomSummary.AverageExpensePerDay.ToString("N0") VND moi ngay</small>
+        </article>
+        <article class="soft-card stat-card">
+            <span>Chenh lech</span>
+            <strong>@Model.CustomSummary.BalanceChange.ToString("N0") VND</strong>
+            <small>@Model.CustomSummary.From.ToString("dd/MM") - @Model.CustomSummary.To.ToString("dd/MM")</small>
+        </article>
+    </div>
+
+    @if (Model.CustomSummary.TransactionCount == 0)
+    {
+        <div class="empty-state mt-4">
+            <h4>Khong co giao dich trong khoang ngay nay</h4>
+            <p>Ban thu doi khoang ngay hoac them giao dich moi roi quay lai xem bao cao.</p>
+        </div>
+    }
+
+    <div class="d-flex gap-3 flex-wrap mt-3">
+        <a class="btn btn-outline-soft"
+           asp-action="ExportExcel"
+           asp-route-period="custom"
+           asp-route-fromDate="@Model.Filter.FromDate.ToString("yyyy-MM-dd")"
+           asp-route-toDate="@Model.Filter.ToDate.ToString("yyyy-MM-dd")">
+            Xuat Excel theo ngay
+        </a>
+        <form asp-action="SendSummaryToEmail" method="post" class="row g-2 flex-grow-1">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="fromDate" value="@Model.Filter.FromDate.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="toDate" value="@Model.Filter.ToDate.ToString("yyyy-MM-dd")" />
+            <div class="col-md-8">
+                <input name="email" class="form-control" value="@Model.DefaultEmail" placeholder="Nhap email de nhan bao cao" />
+            </div>
+            <div class="col-md-4 d-grid">
+                <button class="btn btn-soft-primary" type="submit">Gui email</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="row g-4">
+    <div class="col-lg-6">
+        <div class="soft-card h-100">
+            <div class="section-title">
+                <div>
+                    <h3>Tom tat 7 ngay gan nhat</h3>
+                    <p>Phu hop de xem nhanh xu huong ngan han.</p>
+                </div>
+                <a class="btn btn-outline-soft" asp-action="ExportExcel" asp-route-period="week">Xuat Excel</a>
+            </div>
+            <ul class="list-soft">
+                <li><span>Tong thu</span><strong>@Model.WeeklySummary.TotalIncome.ToString("N0") VND</strong></li>
+                <li><span>Tong chi</span><strong>@Model.WeeklySummary.TotalExpense.ToString("N0") VND</strong></li>
+                <li><span>Chenh lech</span><strong>@Model.WeeklySummary.BalanceChange.ToString("N0") VND</strong></li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="soft-card h-100">
+            <div class="section-title">
+                <div>
+                    <h3>Tom tat thang hien tai</h3>
+                    <p>Tong hop tu dau thang den hien tai.</p>
+                </div>
+                <a class="btn btn-outline-soft" asp-action="ExportExcel" asp-route-period="month">Xuat Excel</a>
+            </div>
+            <ul class="list-soft mb-3">
+                <li><span>Tong thu</span><strong>@Model.MonthlySummary.TotalIncome.ToString("N0") VND</strong></li>
+                <li><span>Tong chi</span><strong>@Model.MonthlySummary.TotalExpense.ToString("N0") VND</strong></li>
+                <li><span>Chenh lech</span><strong>@Model.MonthlySummary.BalanceChange.ToString("N0") VND</strong></li>
+            </ul>
+            <form asp-action="SendWeeklyToEmail" method="post" class="row g-2">
+                @Html.AntiForgeryToken()
+                <div class="col-lg-8 col-12">
+                    <input name="email" class="form-control" value="@Model.DefaultEmail" placeholder="Nhap email nhan bao cao tuan" />
+                </div>
+                <div class="col-lg-4 col-12 d-grid">
+                    <button class="btn btn-soft-primary" type="submit">Gui email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
