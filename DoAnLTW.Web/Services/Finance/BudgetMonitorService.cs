@@ -87,7 +87,6 @@ public class BudgetMonitorService
         _db.BudgetAlerts.Add(alert);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // SignalR realtime toast (giữ nguyên logic cũ)
         await _hubContext.Clients.Group($"user-{userId}")
             .SendAsync("budgetAlert", new
             {
@@ -98,7 +97,6 @@ public class BudgetMonitorService
                 category = budget.Category.Name
             }, cancellationToken);
 
-        // Gửi email cảnh báo qua hàng đợi nền
         await TrySendBudgetAlertEmailAsync(userId, budget, alert, isExceeded, spentAmount, usagePercent, year, month, cancellationToken);
     }
 
@@ -113,13 +111,10 @@ public class BudgetMonitorService
         int month,
         CancellationToken cancellationToken)
     {
-        // Chống gửi email trùng: kiểm tra đã có alert nào cùng level (warning / exceeded)
-        // mà đã gửi email cho budget này trong tháng chưa
         bool alreadySentForLevel;
 
         if (isExceeded)
         {
-            // Đã gửi email "vượt 100%" cho budget này chưa?
             alreadySentForLevel = await _db.BudgetAlerts
                 .AnyAsync(x => x.BudgetId == budget.Id
                             && x.IsEmailSent
@@ -128,7 +123,6 @@ public class BudgetMonitorService
         }
         else
         {
-            // Đã gửi email "cảnh báo sắp vượt" (< 100%) cho budget này chưa?
             alreadySentForLevel = await _db.BudgetAlerts
                 .AnyAsync(x => x.BudgetId == budget.Id
                             && x.IsEmailSent
@@ -141,7 +135,6 @@ public class BudgetMonitorService
             return;
         }
 
-        // Lấy email người dùng
         var userEmail = await _db.Users
             .Where(x => x.Id == userId)
             .Select(x => x.Email)
@@ -174,7 +167,6 @@ public class BudgetMonitorService
             HtmlBody = htmlBody
         });
 
-        // Đánh dấu đã gửi email
         currentAlert.IsEmailSent = true;
         await _db.SaveChangesAsync(cancellationToken);
     }
@@ -219,7 +211,6 @@ public class BudgetMonitorService
         <tr>
             <td align=""center"">
                 <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" style=""max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
-                    <!-- Header -->
                     <tr>
                         <td style=""background:{headerGradient};padding:32px 24px;text-align:center;"">
                             <div style=""font-size:40px;margin-bottom:8px;"">{statusEmoji}</div>
@@ -229,8 +220,6 @@ public class BudgetMonitorService
                             </p>
                         </td>
                     </tr>
-
-                    <!-- Progress Bar -->
                     <tr>
                         <td style=""padding:28px 24px 0;"">
                             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" style=""width:100%;"">
@@ -244,8 +233,6 @@ public class BudgetMonitorService
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Details Table -->
                     <tr>
                         <td style=""padding:24px;"">
                             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" style=""width:100%;border:1px solid #e9ecef;border-radius:12px;overflow:hidden;"">
@@ -269,8 +256,6 @@ public class BudgetMonitorService
                             </table>
                         </td>
                     </tr>
-
-                    <!-- Message -->
                     <tr>
                         <td style=""padding:0 24px 24px;"">
                             <div style=""background:{(isExceeded ? "#fff5f5" : "#fff8e1")};border-left:4px solid {headerColor};border-radius:8px;padding:16px;"">
@@ -282,8 +267,6 @@ public class BudgetMonitorService
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Footer -->
                     <tr>
                         <td style=""background:#f8f9fa;padding:20px 24px;text-align:center;border-top:1px solid #e9ecef;"">
                             <p style=""margin:0;font-size:12px;color:#adb5bd;line-height:1.6;"">

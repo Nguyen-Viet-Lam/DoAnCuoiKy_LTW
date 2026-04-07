@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using DoAnLTW.Web.Models.Entities;
+using DoAnLTW.Web.Services.Email;
 using DoAnLTW.Web.Services.Security;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,7 +72,15 @@ public static class DemoFinanceDataSeeder
                 "Lam Nguyen ADC",
                 true,
                 true,
-                DateTime.UtcNow.AddDays(-6))
+                DateTime.UtcNow.AddDays(-6)),
+            new DemoUserSeed(
+                "Ngocloihdkg2005",
+                "ngocloihdkg2005@gmail.com",
+                "User123!",
+                "Tr\u1ea7n Ng\u1ecdc L\u1ee3i KG",
+                true,
+                true,
+                DateTime.UtcNow.AddDays(-40))
         };
 
         foreach (var seed in demoUsers)
@@ -170,6 +179,9 @@ public static class DemoFinanceDataSeeder
         await EnsurePrimaryDemoProfileAsync(db, showcaseUser.Id, categories);
         await EnsureShowcaseYearProfileAsync(db, showcaseUser.Id, categories);
         await SeedAlertsAsync(db, showcaseUser.Id, GetCategoryId(categories, "Expense", "\u0102n u\u1ed1ng"));
+
+        var ngocloiUser = await db.Users.FirstAsync(x => x.Email == "ngocloihdkg2005@gmail.com");
+        await EnsureNgocloiDemoProfileAsync(db, ngocloiUser.Id, categories, serviceProvider);
 
         await SeedAlertsAsync(db, primaryUser.Id, GetCategoryId(categories, "Expense", "\u0102n u\u1ed1ng"));
         await SeedLogsAsync(db, primaryUser.Id);
@@ -706,6 +718,247 @@ public static class DemoFinanceDataSeeder
             700_000m,
             75,
             DateTime.UtcNow.AddDays(-9 + dayShift));
+
+        await RecalculateWalletBalancesAsync(db, userId);
+    }
+
+    private static async Task EnsureNgocloiDemoProfileAsync(
+        FinanceDbContext db,
+        int userId,
+        IReadOnlyDictionary<string, Category> categories,
+        IServiceProvider serviceProvider)
+    {
+        var march2026 = new DateTime(2026, 3, 1);
+        var april2026 = new DateTime(2026, 4, 1);
+
+        var cashWallet = await EnsureWalletAsync(
+            db, userId,
+            "V\u00ed ti\u1ec1n m\u1eb7t", "Cash", 1_500_000m,
+            "Chi ti\u00eau h\u1eb1ng ng\u00e0y",
+            new DateTime(2026, 2, 20));
+
+        var bankWallet = await EnsureWalletAsync(
+            db, userId,
+            "Vietcombank", "Bank", 6_000_000m,
+            "Nh\u1eadn l\u01b0\u01a1ng v\u00e0 thanh to\u00e1n online",
+            new DateTime(2026, 2, 20));
+
+        var foodId = GetCategoryId(categories, "Expense", "\u0102n u\u1ed1ng");
+        var transportId = GetCategoryId(categories, "Expense", "Di chuy\u1ec3n");
+        var housingId = GetCategoryId(categories, "Expense", "Nh\u00e0 \u1edf");
+        var billId = GetCategoryId(categories, "Expense", "H\u00f3a \u0111\u01a1n");
+        var entertainId = GetCategoryId(categories, "Expense", "Gi\u1ea3i tr\u00ed");
+        var shoppingId = GetCategoryId(categories, "Expense", "Mua s\u1eafm");
+        var salaryId = GetCategoryId(categories, "Income", "L\u01b0\u01a1ng");
+        var bonusId = GetCategoryId(categories, "Income", "Th\u01b0\u1edfng");
+
+        // ===== THÁNG 3/2026 — Vượt ngân sách Ăn uống =====
+
+        // Thu nhập tháng 3
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, salaryId, "Income",
+            8_000_000m, "Nhan luong thang 3", march2026.AddDays(1).AddHours(8));
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, bonusId, "Income",
+            1_000_000m, "Thuong du an thang 3", march2026.AddDays(5).AddHours(9));
+
+        // Chi tiêu Ăn uống tháng 3 — Tổng ~2,200,000 vượt budget 1,500,000
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            85_000m, "Com tam suon bi trua", march2026.AddDays(1).AddHours(12),
+            foodId, "\u0102n u\u1ed1ng", 0.92);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            120_000m, "Lau bo buoi toi voi ban", march2026.AddDays(3).AddHours(19),
+            foodId, "\u0102n u\u1ed1ng", 0.88);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            65_000m, "Bun cha Ha Noi", march2026.AddDays(5).AddHours(12),
+            foodId, "\u0102n u\u1ed1ng", 0.91);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            95_000m, "Cafe va banh mi sang", march2026.AddDays(7).AddHours(8),
+            foodId, "\u0102n u\u1ed1ng", 0.85);
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, foodId, "Expense",
+            450_000m, "An nha hang sinh nhat ban than", march2026.AddDays(10).AddHours(19),
+            foodId, "\u0102n u\u1ed1ng", 0.9);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            75_000m, "Tra sua sau gio hoc", march2026.AddDays(12).AddHours(16),
+            foodId, "\u0102n u\u1ed1ng", 0.87);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            280_000m, "Buffet hai san cuoi tuan", march2026.AddDays(15).AddHours(18),
+            foodId, "\u0102n u\u1ed1ng", 0.82);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            55_000m, "Banh cuon sang", march2026.AddDays(18).AddHours(7),
+            foodId, "\u0102n u\u1ed1ng", 0.93);
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, foodId, "Expense",
+            380_000m, "Lien hoan nhom do an", march2026.AddDays(21).AddHours(19));
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            195_000m, "An vat va do uong ca tuan", march2026.AddDays(25).AddHours(15),
+            foodId, "\u0102n u\u1ed1ng", 0.86);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            300_000m, "Di an lau cuoi thang", march2026.AddDays(28).AddHours(19),
+            foodId, "\u0102n u\u1ed1ng", 0.94);
+
+        // Chi tiêu khác tháng 3
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, transportId, "Expense",
+            80_000m, "Do xang xe may", march2026.AddDays(4).AddHours(8),
+            transportId, "Di chuy\u1ec3n", 0.92);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, transportId, "Expense",
+            60_000m, "Gui xe va grab di hoc", march2026.AddDays(14).AddHours(7));
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, housingId, "Expense",
+            1_500_000m, "Dong tien tro thang 3", march2026.AddDays(2).AddHours(20));
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, billId, "Expense",
+            350_000m, "Tien dien nuoc internet thang 3", march2026.AddDays(8).AddHours(20));
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, entertainId, "Expense",
+            150_000m, "Di xem phim rap", march2026.AddDays(16).AddHours(20));
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, shoppingId, "Expense",
+            420_000m, "Mua ao khoac moi", march2026.AddDays(20).AddHours(14),
+            shoppingId, "Mua s\u1eafm", 0.86);
+
+        // ===== THÁNG 4/2026 — Dữ liệu đơn giản =====
+
+        // Thu nhập tháng 4
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, salaryId, "Income",
+            8_000_000m, "Nhan luong thang 4", april2026.AddDays(1).AddHours(8));
+
+        // Chi tiêu tháng 4 — đơn giản, vừa phải
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            75_000m, "Com ga xoi mo", april2026.AddDays(1).AddHours(12),
+            foodId, "\u0102n u\u1ed1ng", 0.9);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, foodId, "Expense",
+            55_000m, "Bun bo Hue trua", april2026.AddDays(3).AddHours(12),
+            foodId, "\u0102n u\u1ed1ng", 0.88);
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, transportId, "Expense",
+            80_000m, "Do xang dau thang", april2026.AddDays(2).AddHours(8),
+            transportId, "Di chuy\u1ec3n", 0.93);
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, housingId, "Expense",
+            1_500_000m, "Dong tien tro thang 4", april2026.AddDays(2).AddHours(20));
+
+        await EnsureTransactionAsync(db, userId, bankWallet.Id, billId, "Expense",
+            320_000m, "Tien dien nuoc thang 4", april2026.AddDays(5).AddHours(20));
+
+        await EnsureTransactionAsync(db, userId, cashWallet.Id, entertainId, "Expense",
+            120_000m, "Cafe cuoi tuan voi ban", april2026.AddDays(4).AddHours(15));
+
+        // ===== NGÂN SÁCH =====
+
+        // Budget Ăn uống tháng 3: limit 1,500,000 → chi ~2,200,000 = VƯỢT 146%
+        await EnsureBudgetAsync(db, userId, foodId, 2026, 3, 1_500_000m, 80,
+            march2026.AddDays(1));
+
+        // Budget Di chuyển tháng 3
+        await EnsureBudgetAsync(db, userId, transportId, 2026, 3, 500_000m, 75,
+            march2026.AddDays(1));
+
+        // Budget Ăn uống tháng 4: limit rộng hơn
+        await EnsureBudgetAsync(db, userId, foodId, 2026, 4, 2_000_000m, 80,
+            april2026.AddDays(1));
+
+        // Budget Di chuyển tháng 4
+        await EnsureBudgetAsync(db, userId, transportId, 2026, 4, 600_000m, 75,
+            april2026.AddDays(1));
+
+        // ===== CẢNH BÁO VƯỢT NGÂN SÁCH THÁNG 3 =====
+        var marchFoodBudget = await db.Budgets.FirstOrDefaultAsync(x =>
+            x.UserId == userId && x.CategoryId == foodId && x.Year == 2026 && x.Month == 3);
+
+        if (marchFoodBudget is not null)
+        {
+            var marchFoodSpent = await db.Transactions
+                .Where(x => x.UserId == userId && x.CategoryId == foodId && x.Type == "Expense"
+                            && x.OccurredOn >= march2026 && x.OccurredOn < april2026)
+                .SumAsync(x => (decimal?)x.Amount) ?? 0m;
+
+            var usagePct = marchFoodBudget.LimitAmount == 0
+                ? 0
+                : (double)(marchFoodSpent / marchFoodBudget.LimitAmount * 100m);
+
+            var alertExists = await db.BudgetAlerts.AnyAsync(x =>
+                x.BudgetId == marchFoodBudget.Id && x.UsagePercent >= 100);
+
+            if (!alertExists)
+            {
+                var triggerTx = await db.Transactions
+                    .Where(x => x.UserId == userId && x.CategoryId == foodId && x.Type == "Expense"
+                                && x.OccurredOn >= march2026 && x.OccurredOn < april2026)
+                    .OrderByDescending(x => x.OccurredOn)
+                    .FirstAsync();
+
+                db.BudgetAlerts.Add(new BudgetAlert
+                {
+                    UserId = userId,
+                    BudgetId = marchFoodBudget.Id,
+                    WalletTransactionId = triggerTx.Id,
+                    Message = $"B\u1ea1n \u0111\u00e3 v\u01b0\u1ee3t ng\u00e2n s\u00e1ch \u0102n u\u1ed1ng th\u00e1ng 3/2026. \u0110\u00e3 chi {marchFoodSpent:N0} / {marchFoodBudget.LimitAmount:N0} VND ({usagePct:0.#}%).",
+                    SpentAmount = marchFoodSpent,
+                    LimitAmount = marchFoodBudget.LimitAmount,
+                    UsagePercent = usagePct,
+                    IsRead = false,
+                    IsEmailSent = true,
+                    CreatedAt = march2026.AddDays(28).AddHours(20)
+                });
+
+                await db.SaveChangesAsync();
+
+                var emailQueue = serviceProvider.GetRequiredService<EmailQueue>();
+                var userEmail = await db.Users.Where(x => x.Id == userId).Select(x => x.Email).FirstAsync();
+                var overAmount = marchFoodSpent - marchFoodBudget.LimitAmount;
+
+                await emailQueue.QueueAsync(new EmailMessage
+                {
+                    To = userEmail,
+                    Subject = $"\ud83d\udea8 V\u01b0\u1ee3t ng\u00e2n s\u00e1ch \u0102n u\u1ed1ng th\u00e1ng 3/2026",
+                    HtmlBody = $"""
+                        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;">
+                            <div style="background:linear-gradient(135deg,#dc3545,#c82333);padding:32px 24px;text-align:center;border-radius:16px 16px 0 0;">
+                                <div style="font-size:40px;margin-bottom:8px;">\ud83d\udea8</div>
+                                <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">\u0110\u00c3 V\u01af\u1ee2T NG\u00c2N S\u00c1CH</h1>
+                                <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:14px;">Danh m\u1ee5c: <strong>\u0102n u\u1ed1ng</strong> &mdash; Th\u00e1ng 3/2026</p>
+                            </div>
+                            <div style="background:#fff;padding:28px 24px;">
+                                <table style="width:100%;font-size:13px;"><tr>
+                                    <td style="color:#6c757d;">\u0110\u00e3 s\u1eed d\u1ee5ng</td>
+                                    <td style="color:#dc3545;font-weight:700;text-align:right;">{usagePct:0.#}%</td>
+                                </tr></table>
+                                <div style="margin-top:8px;background:#e9ecef;border-radius:8px;height:12px;overflow:hidden;">
+                                    <div style="width:100%;height:100%;background:#dc3545;border-radius:8px;"></div>
+                                </div>
+                            </div>
+                            <div style="background:#fff;padding:0 24px 24px;">
+                                <table style="width:100%;border:1px solid #e9ecef;border-radius:12px;overflow:hidden;">
+                                    <tr style="background:#f8f9fa;"><td style="padding:12px 16px;color:#6c757d;font-size:14px;border-bottom:1px solid #f1f3f5;">\u0110\u00e3 chi</td><td style="padding:12px 16px;font-weight:700;color:#212529;text-align:right;font-size:14px;border-bottom:1px solid #f1f3f5;">{marchFoodSpent:N0} VND</td></tr>
+                                    <tr><td style="padding:12px 16px;color:#6c757d;font-size:14px;border-bottom:1px solid #f1f3f5;">H\u1ea1n m\u1ee9c</td><td style="padding:12px 16px;font-weight:700;color:#212529;text-align:right;font-size:14px;border-bottom:1px solid #f1f3f5;">{marchFoodBudget.LimitAmount:N0} VND</td></tr>
+                                    <tr style="background:#f8f9fa;"><td style="padding:12px 16px;color:#6c757d;font-size:14px;border-bottom:1px solid #f1f3f5;">V\u01b0\u1ee3t qu\u00e1</td><td style="padding:12px 16px;font-weight:700;color:#dc3545;text-align:right;font-size:14px;border-bottom:1px solid #f1f3f5;">{overAmount:N0} VND</td></tr>
+                                    <tr><td style="padding:12px 16px;color:#6c757d;font-size:14px;">Danh m\u1ee5c</td><td style="padding:12px 16px;font-weight:700;color:#212529;text-align:right;font-size:14px;">\u0102n u\u1ed1ng</td></tr>
+                                </table>
+                            </div>
+                            <div style="background:#fff;padding:0 24px 24px;">
+                                <div style="background:#fff5f5;border-left:4px solid #dc3545;border-radius:8px;padding:16px;">
+                                    <p style="margin:0;font-size:14px;color:#495057;line-height:1.6;">B\u1ea1n \u0111\u00e3 chi <strong>{marchFoodSpent:N0} VND</strong>, v\u01b0\u1ee3t h\u1ea1n m\u1ee9c <strong>{marchFoodBudget.LimitAmount:N0} VND</strong> cho danh m\u1ee5c <strong>\u0102n u\u1ed1ng</strong>. H\u00e3y c\u00e2n nh\u1eafc \u0111i\u1ec1u ch\u1ec9nh chi ti\u00eau.</p>
+                                </div>
+                            </div>
+                            <div style="background:#f8f9fa;padding:20px 24px;text-align:center;border-radius:0 0 16px 16px;border-top:1px solid #e9ecef;">
+                                <p style="margin:0;font-size:12px;color:#adb5bd;">Email n\u00e0y \u0111\u01b0\u1ee3c g\u1eedi t\u1ef1 \u0111\u1ed9ng t\u1eeb <strong>Finance Flow</strong>.</p>
+                            </div>
+                        </div>
+                        """
+                });
+            }
+        }
 
         await RecalculateWalletBalancesAsync(db, userId);
     }

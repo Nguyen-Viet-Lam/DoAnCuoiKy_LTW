@@ -181,6 +181,7 @@ public class CategorizationService
         foreach (var ch in normalized)
         {
             var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+
             if (category == UnicodeCategory.NonSpacingMark)
             {
                 continue;

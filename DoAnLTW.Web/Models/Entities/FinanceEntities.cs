@@ -60,6 +60,7 @@ public class Category
     public AppUser? CreatedByUser { get; set; }
 
     public ICollection<WalletTransaction> Transactions { get; set; } = new List<WalletTransaction>();
+
     public ICollection<Budget> Budgets { get; set; } = new List<Budget>();
 }
 
@@ -110,7 +111,6 @@ public class Budget
     public int Id { get; set; }
 
     public int UserId { get; set; }
-
     public int CategoryId { get; set; }
 
     public int Year { get; set; }
@@ -139,7 +139,6 @@ public class UserPersonalKeyword
     public int Id { get; set; }
 
     public int UserId { get; set; }
-
     public int CategoryId { get; set; }
 
     [Required, MaxLength(100)]
@@ -162,7 +161,6 @@ public class BudgetAlert
     public int Id { get; set; }
 
     public int UserId { get; set; }
-
     public int BudgetId { get; set; }
 
     public int WalletTransactionId { get; set; }

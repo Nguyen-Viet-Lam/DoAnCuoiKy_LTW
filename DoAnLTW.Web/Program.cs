@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 var seedDemoData = builder.Configuration.GetValue<bool>("SeedDemoData");
 var seedShowcaseUserEmail = builder.Configuration["SeedShowcaseUserEmail"];
@@ -27,10 +28,12 @@ builder.Logging.AddDebug();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
+
 var dataProtectionKeysPath = Path.Combine(
     builder.Environment.ContentRootPath,
     "App_Data",
     "DataProtectionKeys");
+
 Directory.CreateDirectory(dataProtectionKeysPath);
 
 builder.Services.AddDataProtection()
@@ -65,7 +68,6 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<AuditLogService>();
 builder.Services.AddScoped<AvatarStorageService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-
 builder.Services.AddSingleton<EmailQueue>();
 builder.Services.AddHostedService<QueuedEmailBackgroundService>();
 builder.Services.AddHostedService<WeeklyReportHostedService>();
@@ -88,6 +90,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHub<BudgetHub>("/budgetHub");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

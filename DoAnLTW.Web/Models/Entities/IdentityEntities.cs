@@ -49,9 +49,13 @@ public class AppUser
     public Role Role { get; set; } = null!;
 
     public ICollection<Wallet> Wallets { get; set; } = new List<Wallet>();
+
     public ICollection<WalletTransaction> Transactions { get; set; } = new List<WalletTransaction>();
+
     public ICollection<Budget> Budgets { get; set; } = new List<Budget>();
+
     public ICollection<UserPersonalKeyword> PersonalKeywords { get; set; } = new List<UserPersonalKeyword>();
+
     public ICollection<BudgetAlert> Alerts { get; set; } = new List<BudgetAlert>();
 }
 
