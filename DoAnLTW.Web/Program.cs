@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var seedDemoData = builder.Configuration.GetValue<bool>("SeedDemoData");
+var seedShowcaseUserEmail = builder.Configuration["SeedShowcaseUserEmail"];
 
 if (string.IsNullOrWhiteSpace(defaultConnection))
 {
@@ -25,8 +27,15 @@ builder.Logging.AddDebug();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
+var dataProtectionKeysPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "App_Data",
+    "DataProtectionKeys");
+Directory.CreateDirectory(dataProtectionKeysPath);
+
 builder.Services.AddDataProtection()
-    .SetApplicationName("DoAnLTW");
+    .SetApplicationName("DoAnLTW")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection("AdminAccount"));
@@ -63,7 +72,7 @@ builder.Services.AddHostedService<WeeklyReportHostedService>();
 
 var app = builder.Build();
 
-await SeedData.InitializeAsync(app.Services, app.Environment.IsDevelopment());
+await SeedData.InitializeAsync(app.Services, seedDemoData, seedShowcaseUserEmail);
 
 if (!app.Environment.IsDevelopment())
 {

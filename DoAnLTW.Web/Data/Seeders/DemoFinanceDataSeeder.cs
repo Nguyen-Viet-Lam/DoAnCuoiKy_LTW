@@ -175,6 +175,27 @@ public static class DemoFinanceDataSeeder
         await SeedLogsAsync(db, primaryUser.Id);
     }
 
+    public static async Task SeedShowcaseUserAsync(IServiceProvider serviceProvider, string email)
+    {
+        var db = serviceProvider.GetRequiredService<FinanceDbContext>();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var showcaseUser = await db.Users.FirstOrDefaultAsync(x => x.Email == normalizedEmail);
+
+        if (showcaseUser is null)
+        {
+            throw new InvalidOperationException($"Khong tim thay user {normalizedEmail} de seed du lieu.");
+        }
+
+        await ClearUserDataAsync(db, showcaseUser.Id);
+
+        var categories = await BuildCategoryLookupAsync(db);
+
+        await EnsurePrimaryDemoProfileAsync(db, showcaseUser.Id, categories);
+        await EnsureShowcaseYearProfileAsync(db, showcaseUser.Id, categories);
+        await SeedAlertsAsync(db, showcaseUser.Id, GetCategoryId(categories, "Expense", "\u0102n u\u1ed1ng"));
+        await SeedShowcaseLogsAsync(db, showcaseUser.Id);
+    }
+
     private static async Task EnsureUserAsync(
         FinanceDbContext db,
         PasswordService passwordService,
@@ -208,6 +229,65 @@ public static class DemoFinanceDataSeeder
         existingUser.RoleId = userRoleId;
         existingUser.IsActive = seed.IsActive;
         existingUser.IsEmailVerified = seed.IsEmailVerified;
+    }
+
+    private static async Task ClearUserDataAsync(FinanceDbContext db, int userId)
+    {
+        var userEmail = await db.Users
+            .Where(x => x.Id == userId)
+            .Select(x => x.Email)
+            .FirstAsync();
+
+        var alerts = await db.BudgetAlerts.Where(x => x.UserId == userId).ToListAsync();
+        var reportLogs = await db.ReportDispatchLogs.Where(x => x.UserId == userId).ToListAsync();
+        var personalKeywords = await db.UserPersonalKeywords.Where(x => x.UserId == userId).ToListAsync();
+        var emailOtps = await db.EmailOtps.Where(x => x.UserId == userId || x.Email == userEmail).ToListAsync();
+        var systemLogs = await db.SystemLogs.Where(x => x.UserId == userId).ToListAsync();
+        var transactions = await db.Transactions.Where(x => x.UserId == userId).ToListAsync();
+        var budgets = await db.Budgets.Where(x => x.UserId == userId).ToListAsync();
+        var wallets = await db.Wallets.Where(x => x.UserId == userId).ToListAsync();
+
+        db.BudgetAlerts.RemoveRange(alerts);
+        db.ReportDispatchLogs.RemoveRange(reportLogs);
+        db.UserPersonalKeywords.RemoveRange(personalKeywords);
+        db.EmailOtps.RemoveRange(emailOtps);
+        db.SystemLogs.RemoveRange(systemLogs);
+        db.Transactions.RemoveRange(transactions);
+        db.Budgets.RemoveRange(budgets);
+        db.Wallets.RemoveRange(wallets);
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedShowcaseLogsAsync(FinanceDbContext db, int userId)
+    {
+        db.SystemLogs.AddRange(
+            new SystemLog
+            {
+                UserId = userId,
+                Level = "Info",
+                Action = "SeedShowcaseData",
+                Message = "Da nap lai du lieu demo showcase cho tai khoan nay.",
+                CreatedAt = DateTime.UtcNow.AddHours(-4)
+            },
+            new SystemLog
+            {
+                UserId = userId,
+                Level = "Info",
+                Action = "WeeklyReport",
+                Message = "Da dua bao cao tuan vao hang doi gui email.",
+                CreatedAt = DateTime.UtcNow.AddHours(-2)
+            },
+            new SystemLog
+            {
+                UserId = userId,
+                Level = "Warning",
+                Action = "BudgetAlert",
+                Message = "Ngan sach An uong da cham nguong canh bao.",
+                CreatedAt = DateTime.UtcNow.AddHours(-1)
+            });
+
+        await db.SaveChangesAsync();
     }
 
     private static async Task EnsurePrimaryDemoProfileAsync(

@@ -180,6 +180,8 @@ public class BudgetAlert
 
     public bool IsRead { get; set; }
 
+    public bool IsEmailSent { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey(nameof(UserId))]

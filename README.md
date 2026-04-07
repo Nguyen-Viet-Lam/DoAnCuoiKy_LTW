@@ -2,6 +2,11 @@
 
 Do an quan ly chi tieu ca nhan bang ASP.NET Core MVC, Bootstrap 5, SQL Server va Cookie Authentication.
 
+## Tai lieu nhanh de bao thay
+
+- Ban tom tat chuc nang va huong mo rong: [BAO_CAO_THAY_FINANCE_FLOW.md](BAO_CAO_THAY_FINANCE_FLOW.md)
+- `README.md` nay giu vai tro tai lieu ky thuat/noi bo, chi tiet hon ban bao thay.
+
 ## Tinh nang chinh
 
 - Dang ky, dang nhap, dang xuat bang Cookie Authentication

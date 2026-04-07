@@ -38,6 +38,9 @@ public class AppUser
 
     public bool IsEmailVerified { get; set; }
 
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int RoleId { get; set; }
