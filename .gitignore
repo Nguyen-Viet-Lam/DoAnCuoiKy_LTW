@@ -28,5 +28,6 @@ DoAnLTW.Web/temp-run-build-2/
 *.log
 *.out.log
 *.err.log
+*.pid
 
 .fake

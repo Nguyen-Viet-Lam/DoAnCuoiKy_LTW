@@ -16,8 +16,36 @@ public class ForecastService
     {
         var start = new DateTime(month.Year, month.Month, 1);
         var end = start.AddMonths(1);
-        var today = DateTime.Today < start ? start : DateTime.Today;
-        var daysPassed = Math.Max(1, today.Day);
+        var periodLastDay = end.AddDays(-1);
+        var today = DateTime.Today;
+        if (today < start)
+        {
+            today = start;
+        }
+        else if (today > periodLastDay)
+        {
+            today = periodLastDay;
+        }
+
+        var userCreatedAt = await _db.Users
+            .Where(x => x.Id == userId)
+            .Select(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Tai khoan moi tao giua thang thi chi nen noi suy tren khoang thoi gian
+        // ma he thong da co co hoi quan sat hanh vi chi tieu.
+        var observationStart = userCreatedAt == default
+            ? start
+            : userCreatedAt.Date > start
+                ? userCreatedAt.Date
+                : start;
+
+        if (observationStart > today)
+        {
+            observationStart = today;
+        }
+
+        var daysPassed = Math.Max(1, (today - observationStart).Days + 1);
         var daysInMonth = DateTime.DaysInMonth(start.Year, start.Month);
 
         var currentMonthExpenses = await _db.Transactions
@@ -34,7 +62,7 @@ public class ForecastService
             return Math.Round(avgPast, 0);
         }
 
-        var totalSpent = currentMonthExpenses.Sum();
+        // Tách các khoản chi bất thường ra khỏi phần chi tiêu thường xuyên.
         var spikeThreshold = CalculateSpikeThreshold(currentMonthExpenses);
 
         decimal spikeTotal = 0m;
@@ -52,6 +80,7 @@ public class ForecastService
             }
         }
 
+        // Nội suy phần chi tiêu thường xuyên cho toàn bộ tháng.
         var routineForecast = routineTotal / daysPassed * daysInMonth;
         var currentForecast = spikeTotal + routineForecast;
 
@@ -62,6 +91,7 @@ public class ForecastService
             return Math.Round(currentForecast, 0);
         }
 
+        // Ưu tiên dữ liệu tháng hiện tại nhưng vẫn tham chiếu lịch sử gần nhất để kết quả ổn định hơn.
         return Math.Round((currentForecast * 0.65m) + (averagePastMonths * 0.35m), 0);
     }
 
@@ -87,6 +117,7 @@ public class ForecastService
         var minThreshold = median * 3m;
         var threshold = Math.Max(iqrThreshold, minThreshold);
 
+        // Giữ một ngưỡng tối thiểu để các khoản chi nhỏ nhưng lệch nhẹ không bị xem là đột biến.
         return Math.Max(threshold, 500_000m);
     }
 
@@ -110,6 +141,7 @@ public class ForecastService
 
     private async Task<decimal> GetAverageMonthlyExpenseAsync(int userId, DateTime currentMonthStart, CancellationToken cancellationToken)
     {
+        // Lấy trung bình chi tiêu của ba tháng gần nhất để dùng làm dữ liệu tham chiếu.
         var pastThreeMonths = await _db.Transactions
             .Where(x => x.UserId == userId &&
                         x.Type == "Expense" &&

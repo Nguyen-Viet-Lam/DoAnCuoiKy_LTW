@@ -1315,6 +1315,66 @@ body.sidebar-open {
     border-color: rgba(251, 191, 36, 0.28);
 }
 
+.budget-alerts-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.budget-alert-feed {
+    display: grid;
+    gap: 12px;
+}
+
+.budget-alert-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(217, 231, 247, 0.82);
+    background: rgba(248, 251, 255, 0.9);
+}
+
+.budget-alert-card-unread {
+    background: linear-gradient(135deg, rgba(255, 248, 231, 0.96), rgba(255, 253, 244, 0.96));
+    border-color: rgba(251, 191, 36, 0.32);
+    box-shadow: 0 14px 30px rgba(251, 191, 36, 0.08);
+}
+
+.budget-alert-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: grid;
+    gap: 10px;
+}
+
+.budget-alert-copy strong {
+    line-height: 1.6;
+}
+
+.budget-alert-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+}
+
+.budget-alert-usage {
+    font-weight: 700;
+    color: #b45309;
+}
+
+.budget-alert-time {
+    color: var(--text-soft);
+}
+
+.budget-alert-actions {
+    flex-shrink: 0;
+}
+
 .monthly-detail-card {
     display: flex;
     flex-direction: column;
@@ -1926,6 +1986,7 @@ textarea.form-control {
 
     .expense-dashboard-hero,
     .expense-dashboard-actions,
+    .budget-alert-card,
     .selected-month-rows,
     .month-detail-metrics,
     .expense-summary-grid {

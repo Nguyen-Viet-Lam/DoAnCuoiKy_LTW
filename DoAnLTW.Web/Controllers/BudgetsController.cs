@@ -13,11 +13,16 @@ public class BudgetsController : AppControllerBase
 {
     private readonly FinanceDbContext _db;
     private readonly AuditLogService _auditLogService;
+    private readonly BudgetMonitorService _budgetMonitorService;
 
-    public BudgetsController(FinanceDbContext db, AuditLogService auditLogService)
+    public BudgetsController(
+        FinanceDbContext db,
+        AuditLogService auditLogService,
+        BudgetMonitorService budgetMonitorService)
     {
         _db = db;
         _auditLogService = auditLogService;
+        _budgetMonitorService = budgetMonitorService;
     }
 
     public async Task<IActionResult> Index(int? editId, CancellationToken cancellationToken)
@@ -98,8 +103,15 @@ public class BudgetsController : AppControllerBase
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+        var budgetAlertResult = await _budgetMonitorService.CheckBudgetStatusAsync(
+            CurrentUserId,
+            model.CategoryId,
+            model.Year,
+            model.Month,
+            cancellationToken);
         await _auditLogService.WriteAsync("BudgetSave", "Lưu ngân sách tháng", CurrentUserId, cancellationToken: cancellationToken);
         TempData["SuccessMessage"] = "Đã lưu ngân sách.";
+        SetBudgetAlertWarning(budgetAlertResult);
         return RedirectToAction(nameof(Index));
     }
 

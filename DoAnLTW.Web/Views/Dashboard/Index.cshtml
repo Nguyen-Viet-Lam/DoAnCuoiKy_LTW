@@ -92,6 +92,59 @@
         </div>
     }
 
+    <section class="soft-card budget-alerts-panel">
+        <div class="section-title">
+            <div>
+                <h3>Canh bao ngan sach</h3>
+                <p>Canh bao duoc luu lai tai day nen ban van thay duoc sau khi submit giao dich hoac quay lai dashboard.</p>
+            </div>
+            @if (Model.LatestAlerts.Any(x => !x.IsRead))
+            {
+                <form asp-action="MarkAllAlertsAsRead" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-soft" type="submit">Danh dau da doc</button>
+                </form>
+            }
+        </div>
+
+        @if (Model.LatestAlerts.Any())
+        {
+            <div class="budget-alert-feed">
+                @foreach (var alert in Model.LatestAlerts)
+                {
+                    var alertCardClass = alert.IsRead ? string.Empty : "budget-alert-card-unread";
+                    var alertStatusClass = alert.IsRead ? "status-chip-info" : "status-chip-warning";
+                    <article class="budget-alert-card @alertCardClass">
+                        <div class="budget-alert-copy">
+                            <div class="budget-alert-meta">
+                                <span class="status-chip @alertStatusClass">@(alert.IsRead ? "Da doc" : "Chua doc")</span>
+                                <span class="budget-alert-usage">@alert.UsagePercent.ToString("0.#", invariant)%</span>
+                                <span class="budget-alert-time">@alert.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <strong>@alert.Message</strong>
+                        </div>
+
+                        @if (!alert.IsRead)
+                        {
+                            <form asp-action="MarkAlertAsRead" method="post" class="budget-alert-actions">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@alert.Id" />
+                                <button class="btn btn-outline-soft" type="submit">Da doc</button>
+                            </form>
+                        }
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h4>Chua co canh bao ngan sach</h4>
+                <p>Khi chi tieu cham nguong canh bao hoac vuot ngan sach, he thong se luu canh bao tai day.</p>
+            </div>
+        }
+    </section>
+
     <section class="row g-4 mt-1">
         <div class="col-xl-8">
             <div class="soft-card expense-trend-card h-100">

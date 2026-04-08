@@ -7,3 +7,8 @@
 {
     <div class="alert alert-danger border-0 shadow-sm rounded-4">@error</div>
 }
+
+@if (TempData["WarningMessage"] is string warning)
+{
+    <div class="alert alert-warning border-0 shadow-sm rounded-4">@warning</div>
+}

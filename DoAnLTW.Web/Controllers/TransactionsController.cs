@@ -125,7 +125,11 @@ public class TransactionsController : AppControllerBase
 
             await _db.SaveChangesAsync(cancellationToken);
             await _categorizationService.LearnAsync(CurrentUserId, model.Note, model.CategoryId, suggestedCategoryId, cancellationToken);
-            await _budgetMonitorService.CheckAndNotifyAsync(CurrentUserId, model.CategoryId, existingTransaction.Id, cancellationToken);
+            var budgetAlertResult = await _budgetMonitorService.CheckAndNotifyAsync(
+                CurrentUserId,
+                model.CategoryId,
+                existingTransaction.Id,
+                cancellationToken);
             await _walletBalanceMonitorService.NotifyIfThresholdCrossedAsync(CurrentUserId, sourceWallet, sourceWalletBalanceBefore, cancellationToken);
 
             if (!sameWallet)
@@ -135,6 +139,7 @@ public class TransactionsController : AppControllerBase
 
             await _auditLogService.WriteAsync("TransactionUpdate", $"Sua giao dich #{existingTransaction.Id}", CurrentUserId, cancellationToken: cancellationToken);
 
+            SetBudgetAlertWarning(budgetAlertResult);
             TempData["SuccessMessage"] = "Da cap nhat giao dich.";
             return RedirectToAction(nameof(Index), new { type = model.Type });
         }
@@ -170,10 +175,15 @@ public class TransactionsController : AppControllerBase
         await _db.SaveChangesAsync(cancellationToken);
 
         await _categorizationService.LearnAsync(CurrentUserId, model.Note, model.CategoryId, suggestedCategoryId, cancellationToken);
-        await _budgetMonitorService.CheckAndNotifyAsync(CurrentUserId, model.CategoryId, transaction.Id, cancellationToken);
+        var createdBudgetAlertResult = await _budgetMonitorService.CheckAndNotifyAsync(
+            CurrentUserId,
+            model.CategoryId,
+            transaction.Id,
+            cancellationToken);
         await _walletBalanceMonitorService.NotifyIfThresholdCrossedAsync(CurrentUserId, wallet, walletBalanceBefore, cancellationToken);
         await _auditLogService.WriteAsync("TransactionCreate", $"Them giao dich {transaction.Type} {transaction.Amount:N0} VND", CurrentUserId, cancellationToken: cancellationToken);
 
+        SetBudgetAlertWarning(createdBudgetAlertResult);
         TempData["SuccessMessage"] = "Da luu giao dich.";
         return RedirectToAction(nameof(Index), new { type = model.Type });
     }
