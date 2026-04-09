@@ -5,15 +5,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Finance;
 
+/// <summary>Service tổng hợp dữ liệu báo cáo, xuất Excel và tạo nội dung email báo cáo chi tiêu.</summary>
 public class ReportService
 {
     private readonly FinanceDbContext _db;
 
+    /// <summary>
+    /// Khởi tạo lớp ReportService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public ReportService(FinanceDbContext db)
     {
         _db = db;
     }
 
+    /// <summary>
+    /// Tổng hợp giao dịch trong khoảng thời gian được chọn thành mô hình báo cáo dùng chung.
+    /// </summary>
     public async Task<ReportSummaryViewModel> BuildSummaryAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var endExclusive = to.Date.AddDays(1);
@@ -64,6 +71,9 @@ public class ReportService
         };
     }
 
+    /// <summary>
+    /// Biến dữ liệu báo cáo thành tệp Excel để người dùng tải xuống.
+    /// </summary>
     public async Task<byte[]> ExportExcelAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var summary = await BuildSummaryAsync(userId, from, to, cancellationToken);
@@ -110,6 +120,9 @@ public class ReportService
         return stream.ToArray();
     }
 
+    /// <summary>
+    /// Tạo nội dung HTML cho email báo cáo chi tiêu trong khoảng thời gian chỉ định.
+    /// </summary>
     public async Task<string> BuildWeeklyEmailAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var summary = await BuildSummaryAsync(userId, from, to, cancellationToken);

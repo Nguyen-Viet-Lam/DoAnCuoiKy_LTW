@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller xem báo cáo, xuất Excel và gửi báo cáo qua email.</summary>
 [Authorize(Roles = "User")]
 public class ReportsController : AppControllerBase
 {
@@ -16,6 +17,9 @@ public class ReportsController : AppControllerBase
     private readonly ReportService _reportService;
     private readonly EmailQueue _emailQueue;
 
+    /// <summary>
+    /// Khởi tạo lớp ReportsController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public ReportsController(FinanceDbContext db, ReportService reportService, EmailQueue emailQueue)
     {
         _db = db;
@@ -23,6 +27,9 @@ public class ReportsController : AppControllerBase
         _emailQueue = emailQueue;
     }
 
+    /// <summary>
+    /// Tổng hợp báo cáo tuần, tháng và khoảng ngày tùy chọn để hiển thị lên giao diện.
+    /// </summary>
     public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, CancellationToken cancellationToken)
     {
         var today = DateTime.Today;
@@ -59,6 +66,9 @@ public class ReportsController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Xuất dữ liệu báo cáo theo kỳ được chọn thành tệp Excel để tải về.
+    /// </summary>
     public async Task<IActionResult> ExportExcel(
         string period = "month",
         DateTime? fromDate = null,
@@ -94,6 +104,9 @@ public class ReportsController : AppControllerBase
             fileName);
     }
 
+    /// <summary>
+    /// Đưa email báo cáo tuần vào hàng đợi gửi nền và ghi log lịch sử gửi.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SendWeeklyToEmail(string email, CancellationToken cancellationToken)
@@ -121,6 +134,9 @@ public class ReportsController : AppControllerBase
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Đưa email báo cáo theo khoảng ngày tùy chọn vào hàng đợi gửi nền.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SendSummaryToEmail(string email, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken)

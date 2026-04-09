@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller cho phép người dùng cập nhật hồ sơ, ảnh đại diện và mật khẩu.</summary>
 [Authorize(Roles = "User,Admin")]
 public class ProfileController : AppControllerBase
 {
@@ -16,6 +17,9 @@ public class ProfileController : AppControllerBase
     private readonly AvatarStorageService _avatarStorageService;
     private readonly AuditLogService _auditLogService;
 
+    /// <summary>
+    /// Khởi tạo lớp ProfileController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public ProfileController(
         FinanceDbContext db,
         PasswordService passwordService,
@@ -28,12 +32,18 @@ public class ProfileController : AppControllerBase
         _auditLogService = auditLogService;
     }
 
+    /// <summary>
+    /// Hiển thị hồ sơ người dùng hoặc xử lý cập nhật hồ sơ, ảnh đại diện và mật khẩu.
+    /// </summary>
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         var user = await _db.Users.FirstAsync(x => x.Id == CurrentUserId, cancellationToken);
         return View(BuildProfileViewModel(user));
     }
 
+    /// <summary>
+    /// Hiển thị hồ sơ người dùng hoặc xử lý cập nhật hồ sơ, ảnh đại diện và mật khẩu.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(ProfileViewModel model, CancellationToken cancellationToken)

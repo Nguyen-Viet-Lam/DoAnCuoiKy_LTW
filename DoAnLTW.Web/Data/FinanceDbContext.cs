@@ -3,22 +3,59 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Data;
 
+/// <summary>DbContext trung tâm quản lý các bảng và quan hệ dữ liệu của hệ thống tài chính.</summary>
 public class FinanceDbContext : DbContext
 {
+    /// <summary>
+    /// Khởi tạo DbContext với cấu hình kết nối và mapping do DI cung cấp.
+    /// </summary>
     public FinanceDbContext(DbContextOptions<FinanceDbContext> options) : base(options)
     {
     }
 
+    /// <summary>
+    /// Bảng vai trò dùng cho phân quyền người dùng trong hệ thống.
+    /// </summary>
     public DbSet<Role> Roles => Set<Role>();
+    /// <summary>
+    /// Bảng tài khoản người dùng và quản trị viên.
+    /// </summary>
     public DbSet<AppUser> Users => Set<AppUser>();
+    /// <summary>
+    /// Bảng lưu OTP đã băm phục vụ đăng ký và đặt lại mật khẩu.
+    /// </summary>
     public DbSet<EmailOtp> EmailOtps => Set<EmailOtp>();
+    /// <summary>
+    /// Bảng ví hoặc nguồn tiền của người dùng.
+    /// </summary>
     public DbSet<Wallet> Wallets => Set<Wallet>();
+    /// <summary>
+    /// Bảng danh mục chuẩn và danh mục do quản trị quản lý.
+    /// </summary>
     public DbSet<Category> Categories => Set<Category>();
+    /// <summary>
+    /// Bảng giao dịch thu chi phát sinh trên các ví.
+    /// </summary>
     public DbSet<WalletTransaction> Transactions => Set<WalletTransaction>();
+    /// <summary>
+    /// Bảng ngân sách theo danh mục và theo tháng.
+    /// </summary>
     public DbSet<Budget> Budgets => Set<Budget>();
+    /// <summary>
+    /// Bảng từ khóa cá nhân dùng cho cơ chế học gợi ý danh mục.
+    /// </summary>
     public DbSet<UserPersonalKeyword> UserPersonalKeywords => Set<UserPersonalKeyword>();
+    /// <summary>
+    /// Bảng lưu các cảnh báo vượt ngân sách.
+    /// </summary>
     public DbSet<BudgetAlert> BudgetAlerts => Set<BudgetAlert>();
+    /// <summary>
+    /// Bảng nhật ký hệ thống phục vụ quản trị và truy vết.
+    /// </summary>
     public DbSet<SystemLog> SystemLogs => Set<SystemLog>();
+    /// <summary>
+    /// Bảng lịch sử gửi báo cáo qua email.
+    /// </summary>
     public DbSet<ReportDispatchLog> ReportDispatchLogs => Set<ReportDispatchLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

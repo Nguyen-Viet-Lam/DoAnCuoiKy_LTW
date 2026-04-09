@@ -7,17 +7,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Auth;
 
+/// <summary>Service sinh OTP, lưu OTP đã băm, gửi email OTP và xác thực mã người dùng nhập.</summary>
 public class OtpService
 {
     private readonly FinanceDbContext _db;
     private readonly EmailQueue _emailQueue;
 
+    /// <summary>
+    /// Khởi tạo lớp OtpService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public OtpService(FinanceDbContext db, EmailQueue emailQueue)
     {
         _db = db;
         _emailQueue = emailQueue;
     }
 
+    /// <summary>
+    /// Sinh mã OTP, lưu bản băm vào DB và đưa email OTP vào hàng đợi gửi.
+    /// </summary>
     public async Task SendOtpAsync(AppUser? user, string email, string purpose, CancellationToken cancellationToken = default)
     {
         var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
@@ -56,6 +63,9 @@ public class OtpService
         });
     }
 
+    /// <summary>
+    /// Kiểm tra OTP theo email và mục đích sử dụng, đồng thời cập nhật số lần thử và trạng thái sử dụng.
+    /// </summary>
     public async Task<OtpValidationResult> VerifyAsync(string email, string purpose, string code, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
@@ -100,4 +110,5 @@ public class OtpService
     }
 }
 
+/// <summary>Record biểu diễn kết quả xác thực OTP gồm trạng thái thành công và thông điệp trả về.</summary>
 public record OtpValidationResult(bool Success, string Message);

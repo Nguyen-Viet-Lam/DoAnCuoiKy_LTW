@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller quản lý ngân sách theo danh mục và theo tháng của người dùng.</summary>
 [Authorize(Roles = "User")]
 public class BudgetsController : AppControllerBase
 {
@@ -15,6 +16,9 @@ public class BudgetsController : AppControllerBase
     private readonly AuditLogService _auditLogService;
     private readonly BudgetMonitorService _budgetMonitorService;
 
+    /// <summary>
+    /// Khởi tạo lớp BudgetsController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public BudgetsController(
         FinanceDbContext db,
         AuditLogService auditLogService,
@@ -25,6 +29,9 @@ public class BudgetsController : AppControllerBase
         _budgetMonitorService = budgetMonitorService;
     }
 
+    /// <summary>
+    /// Nạp danh sách ngân sách và dữ liệu form để hiển thị trang quản lý ngân sách.
+    /// </summary>
     public async Task<IActionResult> Index(int? editId, CancellationToken cancellationToken)
     {
         var model = await BuildPageModelAsync(new BudgetFormViewModel(), cancellationToken);
@@ -50,6 +57,9 @@ public class BudgetsController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Lưu ngân sách mới hoặc cập nhật ngân sách hiện có, sau đó kiểm tra lại trạng thái cảnh báo.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Save([Bind(Prefix = "Form")] BudgetFormViewModel model, CancellationToken cancellationToken)
@@ -115,6 +125,9 @@ public class BudgetsController : AppControllerBase
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Xóa ngân sách và các cảnh báo liên quan của người dùng hiện tại.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)

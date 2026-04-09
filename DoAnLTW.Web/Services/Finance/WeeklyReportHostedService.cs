@@ -5,11 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Finance;
 
+/// <summary>Background service tự động kiểm tra lịch và đưa báo cáo tuần của người dùng vào hàng đợi email.</summary>
 public class WeeklyReportHostedService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<WeeklyReportHostedService> _logger;
 
+    /// <summary>
+    /// Khởi tạo lớp WeeklyReportHostedService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public WeeklyReportHostedService(IServiceProvider serviceProvider, ILogger<WeeklyReportHostedService> logger)
     {
         _serviceProvider = serviceProvider;

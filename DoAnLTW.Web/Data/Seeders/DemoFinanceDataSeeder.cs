@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Data.Seeders;
 
+/// <summary>Seeder tạo dữ liệu demo tài chính để trình diễn dashboard, báo cáo và cảnh báo.</summary>
 public static class DemoFinanceDataSeeder
 {
+    /// <summary>
+    /// Seed bộ dữ liệu minh họa để ứng dụng có sẵn người dùng và giao dịch demo.
+    /// </summary>
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         var db = serviceProvider.GetRequiredService<FinanceDbContext>();
@@ -187,6 +191,9 @@ public static class DemoFinanceDataSeeder
         await SeedLogsAsync(db, primaryUser.Id);
     }
 
+    /// <summary>
+    /// Tạo hoặc làm mới tài khoản trình diễn với dữ liệu tài chính mẫu.
+    /// </summary>
     public static async Task SeedShowcaseUserAsync(IServiceProvider serviceProvider, string email)
     {
         var db = serviceProvider.GetRequiredService<FinanceDbContext>();

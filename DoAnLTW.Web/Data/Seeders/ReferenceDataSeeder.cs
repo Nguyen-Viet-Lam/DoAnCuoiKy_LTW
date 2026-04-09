@@ -6,8 +6,12 @@ using Microsoft.Extensions.Options;
 
 namespace DoAnLTW.Web.Data.Seeders;
 
+/// <summary>Seeder tạo dữ liệu tham chiếu như role, danh mục mặc định và tài khoản quản trị.</summary>
 public static class ReferenceDataSeeder
 {
+    /// <summary>
+    /// Seed các dữ liệu tham chiếu như vai trò và danh mục mặc định cho hệ thống.
+    /// </summary>
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         var db = serviceProvider.GetRequiredService<FinanceDbContext>();

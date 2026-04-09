@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller xử lý đăng nhập, đăng ký, xác thực OTP, quên mật khẩu và đăng xuất.</summary>
 public class AuthController : Controller
 {
     private readonly FinanceDbContext _db;
@@ -18,6 +19,9 @@ public class AuthController : Controller
     private readonly CookieAuthService _cookieAuthService;
     private readonly AuditLogService _auditLogService;
 
+    /// <summary>
+    /// Khởi tạo lớp AuthController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public AuthController(
         FinanceDbContext db,
         PasswordService passwordService,
@@ -32,6 +36,9 @@ public class AuthController : Controller
         _auditLogService = auditLogService;
     }
 
+    /// <summary>
+    /// Hiển thị form đăng nhập hoặc xác thực thông tin đăng nhập rồi tạo cookie xác thực.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -43,6 +50,9 @@ public class AuthController : Controller
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
+    /// <summary>
+    /// Hiển thị form đăng nhập hoặc xác thực thông tin đăng nhập rồi tạo cookie xác thực.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -81,12 +91,18 @@ public class AuthController : Controller
         return RedirectToLocal(model.ReturnUrl, user.Role?.Name);
     }
 
+    /// <summary>
+    /// Hiển thị form đăng ký hoặc tạo tài khoản mới rồi gửi OTP xác thực email.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult Register()
     {
         return View(new RegisterViewModel());
     }
 
+    /// <summary>
+    /// Hiển thị form đăng ký hoặc tạo tài khoản mới rồi gửi OTP xác thực email.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -137,6 +153,9 @@ public class AuthController : Controller
         return RedirectToAction(nameof(VerifyOtp), new { email = user.Email, purpose = "Register" });
     }
 
+    /// <summary>
+    /// Hiển thị màn hình nhập OTP hoặc kiểm tra OTP người dùng vừa nhập.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult VerifyOtp(string? email = null, string purpose = "Register")
     {
@@ -147,6 +166,9 @@ public class AuthController : Controller
         });
     }
 
+    /// <summary>
+    /// Hiển thị màn hình nhập OTP hoặc kiểm tra OTP người dùng vừa nhập.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -178,6 +200,9 @@ public class AuthController : Controller
         return RedirectToAction(nameof(Login));
     }
 
+    /// <summary>
+    /// Phát sinh và gửi lại OTP mới cho email và mục đích xác thực hiện tại.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -190,12 +215,18 @@ public class AuthController : Controller
         return RedirectToAction(nameof(VerifyOtp), new { email = normalizedEmail, purpose });
     }
 
+    /// <summary>
+    /// Hiển thị form quên mật khẩu hoặc gửi OTP hỗ trợ đặt lại mật khẩu.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult ForgotPassword()
     {
         return View(new ForgotPasswordViewModel());
     }
 
+    /// <summary>
+    /// Hiển thị form quên mật khẩu hoặc gửi OTP hỗ trợ đặt lại mật khẩu.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -217,12 +248,18 @@ public class AuthController : Controller
         return RedirectToAction(nameof(ResetPassword), new { email });
     }
 
+    /// <summary>
+    /// Hiển thị form đặt lại mật khẩu hoặc cập nhật mật khẩu mới sau khi OTP hợp lệ.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult ResetPassword(string? email = null)
     {
         return View(new ResetPasswordViewModel { Email = email ?? string.Empty });
     }
 
+    /// <summary>
+    /// Hiển thị form đặt lại mật khẩu hoặc cập nhật mật khẩu mới sau khi OTP hợp lệ.
+    /// </summary>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -255,6 +292,9 @@ public class AuthController : Controller
         return RedirectToAction(nameof(Login));
     }
 
+    /// <summary>
+    /// Đăng xuất người dùng bằng cách xóa cookie xác thực hiện tại.
+    /// </summary>
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -264,6 +304,9 @@ public class AuthController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    /// <summary>
+    /// Hiển thị trang thông báo khi người dùng không đủ quyền truy cập tài nguyên.
+    /// </summary>
     [AllowAnonymous]
     public IActionResult AccessDenied()
     {

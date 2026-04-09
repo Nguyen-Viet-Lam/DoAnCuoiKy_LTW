@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller tổng hợp dữ liệu dashboard, biểu đồ, cảnh báo và các chỉ số chi tiêu.</summary>
 [Authorize(Roles = "User,Admin")]
 public class DashboardController : AppControllerBase
 {
@@ -14,6 +15,9 @@ public class DashboardController : AppControllerBase
     private readonly ForecastService _forecastService;
     private readonly WalletBalanceMonitorService _walletBalanceMonitorService;
 
+    /// <summary>
+    /// Khởi tạo lớp DashboardController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public DashboardController(
         FinanceDbContext db,
         ForecastService forecastService,
@@ -24,6 +28,9 @@ public class DashboardController : AppControllerBase
         _walletBalanceMonitorService = walletBalanceMonitorService;
     }
 
+    /// <summary>
+    /// Tổng hợp dữ liệu dashboard, biểu đồ, dự báo và cảnh báo của người dùng.
+    /// </summary>
     public async Task<IActionResult> Index(int? month = null, int? year = null, CancellationToken cancellationToken = default)
     {
         if (User.IsInRole("Admin"))
@@ -180,6 +187,9 @@ public class DashboardController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Đánh dấu một cảnh báo ngân sách là đã đọc.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkAlertAsRead(int id, CancellationToken cancellationToken)
@@ -196,6 +206,9 @@ public class DashboardController : AppControllerBase
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Đánh dấu toàn bộ cảnh báo ngân sách của người dùng là đã đọc.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkAllAlertsAsRead(CancellationToken cancellationToken)

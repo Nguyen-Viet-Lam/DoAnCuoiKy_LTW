@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Finance;
 
+/// <summary>Service gợi ý danh mục giao dịch từ ghi chú và học dần theo thói quen của người dùng.</summary>
 public class CategorizationService
 {
     private static readonly Dictionary<string, string> ExpenseRules = new(StringComparer.OrdinalIgnoreCase)
@@ -47,11 +48,17 @@ public class CategorizationService
 
     private readonly FinanceDbContext _db;
 
+    /// <summary>
+    /// Khởi tạo lớp CategorizationService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public CategorizationService(FinanceDbContext db)
     {
         _db = db;
     }
 
+    /// <summary>
+    /// Phân tích ghi chú giao dịch để gợi ý danh mục phù hợp cho người dùng.
+    /// </summary>
     public async Task<CategorySuggestionResult> SuggestAsync(int userId, string transactionType, string note, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(note))
@@ -106,6 +113,9 @@ public class CategorizationService
         return CategorySuggestionResult.Empty;
     }
 
+    /// <summary>
+    /// Học thêm từ ghi chú và lựa chọn cuối cùng của người dùng để cải thiện gợi ý lần sau.
+    /// </summary>
     public async Task LearnAsync(
         int userId,
         string note,
@@ -199,8 +209,15 @@ public class CategorizationService
     }
 }
 
+/// <summary>Record mô tả kết quả gợi ý danh mục gồm nguồn gợi ý, từ khóa khớp và độ tin cậy.</summary>
 public record CategorySuggestionResult(int CategoryId, string CategoryName, string MatchedKeyword, string Source, double Confidence)
 {
+    /// <summary>
+    /// Giá trị rỗng biểu diễn trường hợp chưa gợi ý được danh mục phù hợp.
+    /// </summary>
     public static CategorySuggestionResult Empty => new(0, string.Empty, string.Empty, string.Empty, 0);
+    /// <summary>
+    /// Cho biết kết quả gợi ý hiện tại có chứa danh mục hợp lệ hay không.
+    /// </summary>
     public bool HasValue => CategoryId > 0;
 }

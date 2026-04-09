@@ -3,9 +3,13 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DoAnLTW.Web.Hubs;
 
+/// <summary>SignalR hub dùng để đẩy cảnh báo ngân sách và số dư ví theo thời gian thực.</summary>
 [Authorize]
 public class BudgetHub : Hub
 {
+    /// <summary>
+    /// Đưa kết nối SignalR hiện tại vào group riêng của người dùng để gửi cảnh báo đúng đối tượng.
+    /// </summary>
     public override async Task OnConnectedAsync()
     {
         var userId = Context.UserIdentifier

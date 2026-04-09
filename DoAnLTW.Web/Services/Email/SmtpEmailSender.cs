@@ -6,12 +6,16 @@ using Microsoft.Extensions.Options;
 
 namespace DoAnLTW.Web.Services.Email;
 
+/// <summary>Service gửi email thật qua SMTP hoặc lưu bản email HTML khi đang ở môi trường development.</summary>
 public class SmtpEmailSender : IEmailSender
 {
     private readonly SmtpOptions _options;
     private readonly ILogger<SmtpEmailSender> _logger;
     private readonly IWebHostEnvironment _environment;
 
+    /// <summary>
+    /// Khởi tạo lớp SmtpEmailSender và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public SmtpEmailSender(
         IOptions<SmtpOptions> options,
         ILogger<SmtpEmailSender> logger,
@@ -22,6 +26,9 @@ public class SmtpEmailSender : IEmailSender
         _environment = environment;
     }
 
+    /// <summary>
+    /// Gửi email thật sự ra ngoài thông qua máy chủ SMTP đã cấu hình.
+    /// </summary>
     public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_options.Host) ||

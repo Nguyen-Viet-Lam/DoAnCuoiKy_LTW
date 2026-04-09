@@ -8,23 +8,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller dành cho quản trị viên để theo dõi hệ thống, quản lý người dùng, danh mục và log.</summary>
 [Authorize(Roles = "Admin")]
 public class AdminController : AppControllerBase
 {
     private readonly FinanceDbContext _db;
     private readonly AuditLogService _auditLogService;
 
+    /// <summary>
+    /// Khởi tạo lớp AdminController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public AdminController(FinanceDbContext db, AuditLogService auditLogService)
     {
         _db = db;
         _auditLogService = auditLogService;
     }
 
+    /// <summary>
+    /// Điều hướng màn hình quản trị mặc định về dashboard tổng quan.
+    /// </summary>
     public IActionResult Index()
     {
         return RedirectToAction(nameof(Dashboard));
     }
 
+    /// <summary>
+    /// Tổng hợp số liệu vận hành hệ thống để hiển thị trên dashboard quản trị.
+    /// </summary>
     public async Task<IActionResult> Dashboard(CancellationToken cancellationToken)
     {
         var today = DateTime.Today;
@@ -80,6 +90,9 @@ public class AdminController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Lọc và hiển thị danh sách tài khoản người dùng cho quản trị viên.
+    /// </summary>
     public async Task<IActionResult> Users(
         string searchTerm = "",
         string statusFilter = "All",
@@ -145,6 +158,9 @@ public class AdminController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Hiển thị danh sách danh mục chuẩn và nạp dữ liệu phục vụ form chỉnh sửa.
+    /// </summary>
     public async Task<IActionResult> Categories(
         string transactionTypeFilter = "All",
         int? editId = null,
@@ -199,6 +215,9 @@ public class AdminController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Lọc và hiển thị nhật ký hệ thống phục vụ việc theo dõi và kiểm tra.
+    /// </summary>
     public async Task<IActionResult> Logs(string levelFilter = "All", string searchTerm = "", CancellationToken cancellationToken = default)
     {
         var query = BuildLogQuery();
@@ -235,6 +254,9 @@ public class AdminController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Khóa hoặc mở khóa trạng thái hoạt động của một tài khoản người dùng.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleUser(int id, bool isActive, CancellationToken cancellationToken)
@@ -264,6 +286,9 @@ public class AdminController : AppControllerBase
         return RedirectToAction(nameof(Users));
     }
 
+    /// <summary>
+    /// Tạo mới hoặc cập nhật danh mục chuẩn do quản trị viên quản lý.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveCategory([Bind(Prefix = "CategoryForm")] AdminCategoryFormViewModel model, CancellationToken cancellationToken)
@@ -344,6 +369,9 @@ public class AdminController : AppControllerBase
         return RedirectToAction(nameof(Categories), new { transactionTypeFilter = model.TransactionType });
     }
 
+    /// <summary>
+    /// Xóa danh mục khi danh mục đó chưa bị ràng buộc bởi giao dịch hay ngân sách.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteCategory(int id, string transactionTypeFilter = "All", CancellationToken cancellationToken = default)

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Lớp cơ sở cho các controller cần đăng nhập, cung cấp thông tin user hiện tại và helper cảnh báo.</summary>
 [Authorize]
 public abstract class AppControllerBase : Controller
 {

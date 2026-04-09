@@ -3,15 +3,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Finance;
 
+/// <summary>Service dự báo tổng chi tiêu cuối tháng dựa trên dữ liệu hiện tại và lịch sử gần nhất.</summary>
 public class ForecastService
 {
     private readonly FinanceDbContext _db;
 
+    /// <summary>
+    /// Khởi tạo lớp ForecastService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public ForecastService(FinanceDbContext db)
     {
         _db = db;
     }
 
+    /// <summary>
+    /// Ước tính tổng chi đến cuối tháng từ dữ liệu đã phát sinh và lịch sử gần đây.
+    /// </summary>
     public async Task<decimal> CalculateMonthEndExpenseForecastAsync(int userId, DateTime month, CancellationToken cancellationToken = default)
     {
         var start = new DateTime(month.Year, month.Month, 1);

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Services.Finance;
 
+/// <summary>Record chứa kết quả kiểm tra ngân sách sau khi tạo hoặc cập nhật giao dịch chi.</summary>
 public sealed record BudgetAlertCheckResult(
     bool AlertCreated,
     bool IsExceeded,
@@ -15,6 +16,9 @@ public sealed record BudgetAlertCheckResult(
     decimal LimitAmount,
     double UsagePercent)
 {
+    /// <summary>
+    /// Giá trị mặc định biểu diễn trường hợp không tạo ra cảnh báo ngân sách nào.
+    /// </summary>
     public static BudgetAlertCheckResult None { get; } = new(
         false,
         false,
@@ -24,12 +28,16 @@ public sealed record BudgetAlertCheckResult(
         0d);
 }
 
+/// <summary>Service theo dõi mức dùng ngân sách, tạo cảnh báo và phát thông báo realtime hoặc email.</summary>
 public class BudgetMonitorService
 {
     private readonly FinanceDbContext _db;
     private readonly IHubContext<BudgetHub> _hubContext;
     private readonly EmailQueue _emailQueue;
 
+    /// <summary>
+    /// Khởi tạo lớp BudgetMonitorService và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public BudgetMonitorService(FinanceDbContext db, IHubContext<BudgetHub> hubContext, EmailQueue emailQueue)
     {
         _db = db;
@@ -37,6 +45,9 @@ public class BudgetMonitorService
         _emailQueue = emailQueue;
     }
 
+    /// <summary>
+    /// Kiểm tra một giao dịch chi vừa phát sinh có làm vượt ngân sách hay không và phát cảnh báo nếu cần.
+    /// </summary>
     public async Task<BudgetAlertCheckResult> CheckAndNotifyAsync(
         int userId,
         int categoryId,
@@ -139,6 +150,9 @@ public class BudgetMonitorService
             usagePercent);
     }
 
+    /// <summary>
+    /// Kiểm tra lại trạng thái ngân sách hiện tại của một danh mục theo tháng.
+    /// </summary>
     public async Task<BudgetAlertCheckResult> CheckBudgetStatusAsync(
         int userId,
         int categoryId,

@@ -2,12 +2,16 @@ using System.Security.Cryptography;
 
 namespace DoAnLTW.Web.Services.Security;
 
+/// <summary>Service băm và kiểm tra mật khẩu bằng PBKDF2 để bảo vệ thông tin đăng nhập.</summary>
 public class PasswordService
 {
     private const int SaltSize = 16;
     private const int HashSize = 32;
     private const int Iterations = 100_000;
 
+    /// <summary>
+    /// Băm mật khẩu bằng PBKDF2 để lưu an toàn trong cơ sở dữ liệu.
+    /// </summary>
     public string Hash(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
@@ -15,6 +19,9 @@ public class PasswordService
         return $"v1.{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
     }
 
+    /// <summary>
+    /// Đối chiếu mật khẩu người dùng nhập với chuỗi băm đang lưu trong hệ thống.
+    /// </summary>
     public bool Verify(string password, string storedHash)
     {
         if (string.IsNullOrWhiteSpace(storedHash))

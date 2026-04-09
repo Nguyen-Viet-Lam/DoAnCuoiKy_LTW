@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller quản lý giao dịch thu chi, gợi ý danh mục và cập nhật số dư ví.</summary>
 [Authorize(Roles = "User")]
 public class TransactionsController : AppControllerBase
 {
@@ -17,6 +18,9 @@ public class TransactionsController : AppControllerBase
     private readonly WalletBalanceMonitorService _walletBalanceMonitorService;
     private readonly AuditLogService _auditLogService;
 
+    /// <summary>
+    /// Khởi tạo lớp TransactionsController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public TransactionsController(
         FinanceDbContext db,
         CategorizationService categorizationService,
@@ -31,6 +35,9 @@ public class TransactionsController : AppControllerBase
         _auditLogService = auditLogService;
     }
 
+    /// <summary>
+    /// Nạp bộ lọc, form và lịch sử giao dịch để hiển thị trang quản lý thu chi.
+    /// </summary>
     public async Task<IActionResult> Index(
         string type = "Expense",
         int? walletId = null,
@@ -54,6 +61,9 @@ public class TransactionsController : AppControllerBase
         return View(await BuildPageModelAsync(new TransactionFormViewModel { Type = type }, filter, editId, cancellationToken));
     }
 
+    /// <summary>
+    /// Tạo mới hoặc cập nhật giao dịch, đồng thời cập nhật số dư ví và các cảnh báo liên quan.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Save([Bind(Prefix = "Form")] TransactionFormViewModel model, CancellationToken cancellationToken)
@@ -188,6 +198,9 @@ public class TransactionsController : AppControllerBase
         return RedirectToAction(nameof(Index), new { type = model.Type });
     }
 
+    /// <summary>
+    /// Xóa giao dịch và hoàn tác ảnh hưởng của giao dịch đó lên số dư ví.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, string type = "Expense", CancellationToken cancellationToken = default)
@@ -218,6 +231,9 @@ public class TransactionsController : AppControllerBase
         return RedirectToAction(nameof(Index), new { type });
     }
 
+    /// <summary>
+    /// Gọi service gợi ý danh mục từ nội dung ghi chú người dùng nhập.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> SuggestCategory(string type, string note, CancellationToken cancellationToken)
     {

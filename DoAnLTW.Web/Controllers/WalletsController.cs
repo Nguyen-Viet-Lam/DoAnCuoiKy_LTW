@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DoAnLTW.Web.Controllers;
 
+/// <summary>Controller quản lý danh sách ví, số dư ban đầu và trạng thái sử dụng của ví.</summary>
 [Authorize(Roles = "User")]
 public class WalletsController : AppControllerBase
 {
@@ -15,6 +16,9 @@ public class WalletsController : AppControllerBase
     private readonly AuditLogService _auditLogService;
     private readonly WalletBalanceMonitorService _walletBalanceMonitorService;
 
+    /// <summary>
+    /// Khởi tạo lớp WalletsController và nhận các dependency cần cho quá trình xử lý.
+    /// </summary>
     public WalletsController(
         FinanceDbContext db,
         AuditLogService auditLogService,
@@ -25,6 +29,9 @@ public class WalletsController : AppControllerBase
         _walletBalanceMonitorService = walletBalanceMonitorService;
     }
 
+    /// <summary>
+    /// Nạp danh sách ví và dữ liệu form để hiển thị trang quản lý ví.
+    /// </summary>
     public async Task<IActionResult> Index(int? editId, CancellationToken cancellationToken)
     {
         var wallets = await _db.Wallets
@@ -68,6 +75,9 @@ public class WalletsController : AppControllerBase
         return View(model);
     }
 
+    /// <summary>
+    /// Tạo ví mới hoặc cập nhật thông tin ví hiện có của người dùng.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Save([Bind(Prefix = "Form")] WalletFormViewModel model, CancellationToken cancellationToken)
@@ -119,6 +129,9 @@ public class WalletsController : AppControllerBase
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Xóa ví khi ví đó chưa phát sinh giao dịch ràng buộc.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
